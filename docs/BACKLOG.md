@@ -37,13 +37,13 @@
 
 | ID | Tarea | Prioridad | Estado | Fase |
 |----|-------|-----------|--------|------|
-| B-016 | Implementar lector de SQL Agent Jobs | Alta | Pendiente | 2 |
-| B-017 | Implementar lector de objetos de esquema | Alta | Pendiente | 2 |
-| B-018 | Crear worker de descubrimiento periódico | Alta | Pendiente | 2 |
-| B-019 | Crear pantalla de jobs y objetos descubiertos | Media | Pendiente | 2 |
-| B-020 | Implementar asociación manual job-proceso | Alta | Pendiente | 2 |
-| B-021 | Almacenar snapshots de descubrimiento | Media | Pendiente | 2 |
-| B-022 | Tests de integración del descubrimiento | Alta | Pendiente | 2 |
+| B-016 | Implementar lector de SQL Agent Jobs | Alta | Completado | 2 |
+| B-017 | Implementar lector de objetos de esquema | Alta | Completado | 2 |
+| B-018 | Crear worker de descubrimiento periódico | Alta | Completado | 2 |
+| B-019 | Crear pantalla de jobs y objetos descubiertos | Media | Completado | 2 |
+| B-020 | Implementar asociación manual job-proceso | Alta | Completado | 2 |
+| B-021 | Almacenar snapshots de descubrimiento | Media | Completado | 2 |
+| B-022 | Tests de integración del descubrimiento | Alta | Completado | 2 |
 
 ## Fase 3: Motor de Reglas y Riesgo
 

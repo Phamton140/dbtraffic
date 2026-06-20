@@ -1,0 +1,191 @@
+@page "/discovery"
+@using DbTraffic.Core.Entities
+@inject IHttpClientFactory HttpClientFactory
+@inject NavigationManager Navigation
+
+<PageTitle>Descubrimiento - DbTraffic</PageTitle>
+
+<h1>Descubrimiento asistido</h1>
+
+@if (_instances == null)
+{
+    <p><em>Cargando instancias...</em></p>
+}
+else
+{
+    <div class="mb-3">
+        <label class="form-label">Instancia</label>
+        <select class="form-select" @bind="_selectedInstanceId">
+            <option value="">Seleccione una instancia...</option>
+            @foreach (var instance in _instances)
+            {
+                <option value="@instance.Id">@instance.Name</option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <button class="btn btn-primary" @onclick="RunDiscovery" disabled="@(_selectedInstanceId == Guid.Empty)">Ejecutar descubrimiento</button>
+        <button class="btn btn-secondary" @onclick="LoadDiscoveryResults" disabled="@(_selectedInstanceId == Guid.Empty)">Ver resultados</button>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_message))
+    {
+        <div class="alert alert-info">@_message</div>
+    }
+
+    @if (_jobs != null)
+    {
+        <h3>Jobs descubiertos</h3>
+        @if (_jobs.Count == 0)
+        {
+            <p>No se encontraron jobs.</p>
+        }
+        else
+        {
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Habilitado</th>
+                        <th>Proceso asociado</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var job in _jobs)
+                    {
+                        <tr>
+                            <td>@job.Name</td>
+                            <td>
+                                @if (job.Enabled)
+                                {
+                                    <span class="badge bg-success">Sí</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">No</span>
+                                }
+                            </td>
+                            <td>@GetAssociatedProcessName(job.AssociatedProcessId)</td>
+                            <td>
+                                <select class="form-select form-select-sm" @onchange="e => AssociateJob(job.Id, e.Value)">
+                                    <option value="">Sin asociar</option>
+                                    @foreach (var process in _processes ?? new List<Process>())
+                                    {
+                                        <option value="@process.Id" selected="@(job.AssociatedProcessId == process.Id)">@process.Name</option>
+                                    }
+                                </select>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    }
+
+    @if (_objects != null)
+    {
+        <h3>Objetos descubiertos</h3>
+        @if (_objects.Count == 0)
+        {
+            <p>No se encontraron objetos de usuario en la base de datos configurada.</p>
+        }
+        else
+        {
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Esquema</th>
+                        <th>Objeto</th>
+                        <th>Tipo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var obj in _objects)
+                    {
+                        <tr>
+                            <td>@obj.SchemaName</td>
+                            <td>@obj.ObjectName</td>
+                            <td>@obj.ObjectType</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    }
+}
+
+@code {
+    private List<Instance>? _instances;
+    private List<Process>? _processes;
+    private List<DiscoveredJob>? _jobs;
+    private List<DiscoveredObject>? _objects;
+    private Guid _selectedInstanceId;
+    private string? _message;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var client = CreateClient();
+        _instances = await client.GetFromJsonAsync<List<Instance>>("api/instances");
+        _processes = await client.GetFromJsonAsync<List<Process>>("api/processes");
+    }
+
+    private async Task RunDiscovery()
+    {
+        if (_selectedInstanceId == Guid.Empty) return;
+
+        _message = "Ejecutando descubrimiento...";
+        var client = CreateClient();
+        var response = await client.PostAsync($"api/discovery/run/{_selectedInstanceId}", null);
+        if (response.IsSuccessStatusCode)
+        {
+            _message = "Descubrimiento completado.";
+            await LoadDiscoveryResults();
+        }
+        else
+        {
+            _message = $"Error en descubrimiento: {response.StatusCode}";
+        }
+    }
+
+    private async Task LoadDiscoveryResults()
+    {
+        if (_selectedInstanceId == Guid.Empty) return;
+
+        _message = "Cargando resultados...";
+        var client = CreateClient();
+        _jobs = await client.GetFromJsonAsync<List<DiscoveredJob>>($"api/discovery/jobs/{_selectedInstanceId}");
+        _objects = await client.GetFromJsonAsync<List<DiscoveredObject>>($"api/discovery/objects/{_selectedInstanceId}");
+        _message = null;
+    }
+
+    private string GetAssociatedProcessName(Guid? processId)
+    {
+        if (!processId.HasValue) return "Sin asociar";
+        return _processes?.FirstOrDefault(p => p.Id == processId.Value)?.Name ?? "Desconocido";
+    }
+
+    private async Task AssociateJob(Guid jobId, object? value)
+    {
+        Guid? processId = null;
+        if (value is string str && Guid.TryParse(str, out var parsedId))
+        {
+            processId = parsedId;
+        }
+
+        var client = CreateClient();
+        var response = await client.PostAsJsonAsync($"api/discovery/associate/{jobId}", new { ProcessId = processId });
+        if (response.IsSuccessStatusCode)
+        {
+            await LoadDiscoveryResults();
+        }
+    }
+
+    private HttpClient CreateClient()
+    {
+        var client = HttpClientFactory.CreateClient();
+        client.BaseAddress = new Uri(Navigation.BaseUri);
+        return client;
+    }
+}

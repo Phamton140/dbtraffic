@@ -1,5 +1,6 @@
 using DbTraffic.Core.Repositories;
 using DbTraffic.Infrastructure.Data;
+using DbTraffic.Infrastructure.Discovery;
 using DbTraffic.Infrastructure.Repositories;
 using DbTraffic.Infrastructure.SqlServer;
 using DbTraffic.Shared.Models;
@@ -29,6 +30,13 @@ builder.Services.AddScoped<ISqlServerInstanceClient, SqlServerInstanceClient>();
 builder.Services.AddSingleton<IDbConnectionFactory, SqlConnectionFactory>();
 builder.Services.AddScoped<IProcessRepository, ProcessRepository>();
 builder.Services.AddScoped<IInstanceRepository, InstanceRepository>();
+builder.Services.AddScoped<IDiscoveryRepository, DiscoveryRepository>();
+builder.Services.AddScoped<DiscoveryService>();
+builder.Services.Configure<DiscoveryWorkerOptions>(options =>
+{
+    options.Interval = TimeSpan.FromMinutes(builder.Configuration.GetValue<int>("DbTraffic:Discovery:IntervalMinutes", 60));
+});
+builder.Services.AddHostedService<DiscoveryWorker>();
 
 var app = builder.Build();
 
@@ -68,5 +76,6 @@ app.MapGet("/api/health/sql", async (ISqlServerInstanceClient client, Cancellati
 
 app.MapInstanceEndpoints();
 app.MapProcessEndpoints();
+app.MapDiscoveryEndpoints();
 
 app.Run();

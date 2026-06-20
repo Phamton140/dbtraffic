@@ -27,6 +27,14 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - UI Blazor Server: páginas de instancias y procesos con listado, creación y eliminación.
 - Validaciones de dominio y excepción `DomainException`.
 - Tests unitarios de validación de entidades.
+- Entidades de descubrimiento: `DiscoveredJob`, `DiscoveredObject`.
+- Lector SQL Server para jobs (`msdb.dbo.sysjobs`) y objetos (`sys.objects`).
+- Repositorio `DiscoveryRepository` con persistencia y asociación.
+- `DiscoveryService` y `DiscoveryWorker` para descubrimiento periódico.
+- Endpoints de descubrimiento: `/api/discovery/run`, `/api/discovery/jobs`, `/api/discovery/objects`, `/api/discovery/associate`.
+- Página Blazor `/discovery` para ejecutar descubrimiento y asociar jobs a procesos.
+- Tests de integración del repositorio de descubrimiento.
+- Dependencias Dapper y Microsoft.Extensions.Hosting/Logging/Options.
 
 ## [0.1.0] - Por definir
 

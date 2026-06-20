@@ -69,3 +69,13 @@
 **Impacto**: Acoplamiento temporal entre contratos de API y modelo de dominio. Se introducirán DTOs cuando la API evolucione hacia versión pública o multi-cliente.
 
 **Responsable**: Arquitecto
+
+## 2026-06-20: Descubrimiento de objetos por base de datos de conexión
+
+**Decisión**: El descubrimiento de objetos se realiza sobre la base de datos especificada en la cadena de conexión de la instancia.
+
+**Razón**: Simplicidad en el MVP; evita recorrer todas las bases de datos de la instancia.
+
+**Impacto**: Para descubrir objetos de una base de datos específica, el usuario debe configurar la instancia apuntando a esa base de datos. En futuras versiones se implementará descubrimiento multi-base de datos.
+
+**Responsable**: Arquitecto

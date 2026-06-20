@@ -49,3 +49,23 @@
 **Impacto**: Dependencia adicional, pero alineada con el ecosistema .NET moderno.
 
 **Responsable**: Arquitecto
+
+## 2026-06-20: Uso de Dapper para acceso a datos
+
+**Decisión**: Usar Dapper como micro-ORM para los repositorios SQL Server del producto.
+
+**Razón**: Ligero, rápido, permite control total del SQL y es adecuado para un MVP donde las consultas son explícitas.
+
+**Impacto**: Menos productividad que Entity Framework para cambios de esquema, pero mejor rendimiento y transparencia.
+
+**Responsable**: Arquitecto
+
+## 2026-06-20: Exponer entidades de dominio en la API y UI
+
+**Decisión**: En el MVP, la API Minimal y los componentes Blazor usan directamente las entidades de dominio (`Instance`, `Process`).
+
+**Razón**: Reduce la cantidad de DTOs duplicados y acelera el desarrollo inicial.
+
+**Impacto**: Acoplamiento temporal entre contratos de API y modelo de dominio. Se introducirán DTOs cuando la API evolucione hacia versión pública o multi-cliente.
+
+**Responsable**: Arquitecto

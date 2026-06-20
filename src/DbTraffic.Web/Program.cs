@@ -1,12 +1,18 @@
+using DbTraffic.Core.Repositories;
+using DbTraffic.Infrastructure.Data;
+using DbTraffic.Infrastructure.Repositories;
 using DbTraffic.Infrastructure.SqlServer;
 using DbTraffic.Shared.Models;
 using DbTraffic.Web.Components;
+using DbTraffic.Web.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddHttpClient();
 
 builder.Services.AddSingleton<InstanceConnectionInfo>(sp =>
 {
@@ -20,6 +26,9 @@ builder.Services.AddSingleton<InstanceConnectionInfo>(sp =>
 });
 
 builder.Services.AddScoped<ISqlServerInstanceClient, SqlServerInstanceClient>();
+builder.Services.AddSingleton<IDbConnectionFactory, SqlConnectionFactory>();
+builder.Services.AddScoped<IProcessRepository, ProcessRepository>();
+builder.Services.AddScoped<IInstanceRepository, InstanceRepository>();
 
 var app = builder.Build();
 
@@ -56,5 +65,8 @@ app.MapGet("/api/health/sql", async (ISqlServerInstanceClient client, Cancellati
         Requests = requests.Take(10)
     });
 });
+
+app.MapInstanceEndpoints();
+app.MapProcessEndpoints();
 
 app.Run();

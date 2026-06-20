@@ -1,0 +1,118 @@
+@page "/instances"
+@using DbTraffic.Core.Entities
+@inject IHttpClientFactory HttpClientFactory
+@inject NavigationManager Navigation
+
+<PageTitle>Instancias - DbTraffic</PageTitle>
+
+<h1>Instancias SQL Server</h1>
+
+@if (_instances == null)
+{
+    <p><em>Cargando...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-8">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Descripción</th>
+                        <th>Estado</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var instance in _instances)
+                    {
+                        <tr>
+                            <td>@instance.Name</td>
+                            <td>@instance.Description</td>
+                            <td>
+                                @if (instance.IsActive)
+                                {
+                                    <span class="badge bg-success">Activa</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Inactiva</span>
+                                }
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-danger" @onclick="() => DeleteInstance(instance.Id)">Eliminar</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    Nueva instancia
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre</label>
+                        <input class="form-control" @bind="_newInstance.Name" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Cadena de conexión</label>
+                        <input class="form-control" @bind="_newInstance.ConnectionString" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Descripción</label>
+                        <textarea class="form-control" @bind="_newInstance.Description"></textarea>
+                    </div>
+                    <button class="btn btn-primary" @onclick="CreateInstance">Crear</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Instance>? _instances;
+    private Instance _newInstance = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadInstancesAsync();
+    }
+
+    private async Task LoadInstancesAsync()
+    {
+        var client = CreateClient();
+        _instances = await client.GetFromJsonAsync<List<Instance>>("api/instances");
+    }
+
+    private async Task CreateInstance()
+    {
+        var client = CreateClient();
+        var response = await client.PostAsJsonAsync("api/instances", _newInstance);
+        if (response.IsSuccessStatusCode)
+        {
+            _newInstance = new Instance();
+            await LoadInstancesAsync();
+        }
+    }
+
+    private async Task DeleteInstance(Guid id)
+    {
+        var client = CreateClient();
+        var response = await client.DeleteAsync($"api/instances/{id}");
+        if (response.IsSuccessStatusCode)
+        {
+            await LoadInstancesAsync();
+        }
+    }
+
+    private HttpClient CreateClient()
+    {
+        var client = HttpClientFactory.CreateClient();
+        client.BaseAddress = new Uri(Navigation.BaseUri);
+        return client;
+    }
+}

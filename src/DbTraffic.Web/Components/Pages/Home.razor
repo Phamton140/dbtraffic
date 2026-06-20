@@ -1,7 +1,40 @@
 ﻿@page "/"
 
-<PageTitle>Home</PageTitle>
+<PageTitle>DbTraffic - Dashboard</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>DbTraffic</h1>
 
-Welcome to your new app.
+<p class="lead">
+    Controlador de tráfico para cargas de trabajo de bases de datos SQL Server.
+</p>
+
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Instancias</h5>
+                <p class="card-text">Registra y gestiona las instancias SQL Server que deseas monitorear.</p>
+                <a href="instances" class="btn btn-primary">Ver instancias</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Procesos</h5>
+                <p class="card-text">Cataloga jobs, ETLs, stored procedures y otros procesos de base de datos.</p>
+                <a href="processes" class="btn btn-primary">Ver procesos</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Estado</h5>
+                <p class="card-text">Consulta la conectividad con SQL Server y requests activos.</p>
+                <a href="api/health/sql" target="_blank" class="btn btn-secondary">Health check</a>
+            </div>
+        </div>
+    </div>
+</div>
+

@@ -19,6 +19,14 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - Dependencia `Microsoft.Data.SqlClient` para acceso a SQL Server.
 - Workflow de GitHub Actions CI en `.github/workflows/ci.yml`.
 - Guía de instalación local en `docs/SETUP.md`.
+- Entidades de dominio: `Instance`, `Process`, `ProcessObject`, `ProcessSchedule`.
+- Enums de dominio: `ProcessType`, `IntensityLevel`, `ObjectType`, `ObjectAccessType`.
+- Repositorios SQL Server con Dapper: `InstanceRepository`, `ProcessRepository`.
+- Factoría de conexiones `SqlConnectionFactory`.
+- Endpoints CRUD `/api/instances` y `/api/processes`.
+- UI Blazor Server: páginas de instancias y procesos con listado, creación y eliminación.
+- Validaciones de dominio y excepción `DomainException`.
+- Tests unitarios de validación de entidades.
 
 ## [0.1.0] - Por definir
 

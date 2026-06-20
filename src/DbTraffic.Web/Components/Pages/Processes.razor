@@ -1,0 +1,166 @@
+@page "/processes"
+@using DbTraffic.Core.Entities
+@using DbTraffic.Core.Enums
+@inject IHttpClientFactory HttpClientFactory
+@inject NavigationManager Navigation
+
+<PageTitle>Procesos - DbTraffic</PageTitle>
+
+<h1>Procesos</h1>
+
+@if (_processes == null || _instances == null)
+{
+    <p><em>Cargando...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-8">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Tipo</th>
+                        <th>Instancia</th>
+                        <th>Duración estimada</th>
+                        <th>Intensidad</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var process in _processes)
+                    {
+                        <tr>
+                            <td>@process.Name</td>
+                            <td>@process.ProcessType</td>
+                            <td>@GetInstanceName(process.InstanceId)</td>
+                            <td>@process.EstimatedDurationMinutes min</td>
+                            <td>
+                                <span class="badge bg-info">CPU @process.CpuIntensity</span>
+                                <span class="badge bg-warning">IO @process.IoIntensity</span>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-danger" @onclick="() => DeleteProcess(process.Id)">Eliminar</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    Nuevo proceso
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre</label>
+                        <input class="form-control" @bind="_newProcess.Name" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Instancia</label>
+                        <select class="form-select" @bind="_newProcess.InstanceId">
+                            <option value="">Seleccione...</option>
+                            @foreach (var instance in _instances)
+                            {
+                                <option value="@instance.Id">@instance.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tipo</label>
+                        <select class="form-select" @bind="_newProcess.ProcessType">
+                            @foreach (var type in Enum.GetValues<ProcessType>())
+                            {
+                                <option value="@type">@type</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Duración estimada (min)</label>
+                        <input type="number" class="form-control" @bind="_newProcess.EstimatedDurationMinutes" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Intensidad CPU</label>
+                        <select class="form-select" @bind="_newProcess.CpuIntensity">
+                            @foreach (var level in Enum.GetValues<IntensityLevel>())
+                            {
+                                <option value="@level">@level</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Intensidad IO</label>
+                        <select class="form-select" @bind="_newProcess.IoIntensity">
+                            @foreach (var level in Enum.GetValues<IntensityLevel>())
+                            {
+                                <option value="@level">@level</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Intensidad Memoria</label>
+                        <select class="form-select" @bind="_newProcess.MemoryIntensity">
+                            @foreach (var level in Enum.GetValues<IntensityLevel>())
+                            {
+                                <option value="@level">@level</option>
+                            }
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" @onclick="CreateProcess">Crear</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Process>? _processes;
+    private List<Instance>? _instances;
+    private Process _newProcess = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        var client = CreateClient();
+        _instances = await client.GetFromJsonAsync<List<Instance>>("api/instances");
+        _processes = await client.GetFromJsonAsync<List<Process>>("api/processes");
+    }
+
+    private string GetInstanceName(Guid instanceId)
+    {
+        return _instances?.FirstOrDefault(i => i.Id == instanceId)?.Name ?? "Desconocida";
+    }
+
+    private async Task CreateProcess()
+    {
+        var client = CreateClient();
+        var response = await client.PostAsJsonAsync("api/processes", _newProcess);
+        if (response.IsSuccessStatusCode)
+        {
+            _newProcess = new Process();
+            await LoadDataAsync();
+        }
+    }
+
+    private async Task DeleteProcess(Guid id)
+    {
+        var client = CreateClient();
+        var response = await client.DeleteAsync($"api/processes/{id}");
+        if (response.IsSuccessStatusCode)
+        {
+            await LoadDataAsync();
+        }
+    }
+
+    private HttpClient CreateClient()
+    {
+        var client = HttpClientFactory.CreateClient();
+        client.BaseAddress = new Uri(Navigation.BaseUri);
+        return client;
+    }
+}

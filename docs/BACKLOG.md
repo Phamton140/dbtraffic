@@ -24,14 +24,14 @@
 
 | ID | Tarea | Prioridad | Estado | Fase |
 |----|-------|-----------|--------|------|
-| B-008 | Implementar entidades de dominio de procesos y objetos | Alta | Pendiente | 1 |
-| B-009 | Implementar repositorios de catálogo en SQL Server | Alta | Pendiente | 1 |
-| B-010 | Crear API CRUD de procesos | Alta | Pendiente | 1 |
-| B-011 | Crear UI CRUD de procesos en Blazor | Alta | Pendiente | 1 |
-| B-012 | Crear API CRUD de instancias objetivo | Alta | Pendiente | 1 |
-| B-013 | Crear UI CRUD de instancias objetivo | Media | Pendiente | 1 |
-| B-014 | Agregar validaciones de dominio | Media | Pendiente | 1 |
-| B-015 | Tests unitarios e integración del catálogo | Alta | Pendiente | 1 |
+| B-008 | Implementar entidades de dominio de procesos y objetos | Alta | Completado | 1 |
+| B-009 | Implementar repositorios de catálogo en SQL Server | Alta | Completado | 1 |
+| B-010 | Crear API CRUD de procesos | Alta | Completado | 1 |
+| B-011 | Crear UI CRUD de procesos en Blazor | Alta | Completado | 1 |
+| B-012 | Crear API CRUD de instancias objetivo | Alta | Completado | 1 |
+| B-013 | Crear UI CRUD de instancias objetivo | Media | Completado | 1 |
+| B-014 | Agregar validaciones de dominio | Media | Completado | 1 |
+| B-015 | Tests unitarios e integración del catálogo | Alta | Completado | 1 |
 
 ## Fase 2: Descubrimiento Asistido
 

@@ -13,6 +13,7 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - Degradación elegente en `SqlServerInstanceClient`: si una métrica falla, se registra una advertencia y se devuelve `0` sin lanzar excepción ni detener `MonitoringWorker`.
 - `SqlServerInstanceClient.CanConnectAsync`: ahora captura excepciones durante la apertura de conexión, evitando que connection strings inválidas propaguen errores.
 - `DiscoveryService.DiscoverInstanceAsync`: ya no relanza excepciones cuando el descubrimiento de una instancia falla. Registra el error y continúa con las demás instancias activas.
+- `App.razor`: se agregaron referencias a Bootstrap 5.3.2, Bootstrap Icons 1.11.1 y Bootstrap JS desde CDN para corregir el diseño de la UI.
 
 ### Changed
 - `MonitoringService` y `ExecutionService` ahora reciben `ILogger<SqlServerInstanceClient>` y lo pasan a las instancias de `SqlServerInstanceClient`.

@@ -28,13 +28,13 @@ public sealed class SqlServerTestFixture : IAsyncLifetime
 
         _container = new MsSqlBuilder()
             .WithImage("mcr.microsoft.com/mssql/server:2019-latest")
+            .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(1433))
             .Build();
 
         try
         {
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(120));
-            await _container.StartAsync(cts.Token);
-            await ApplySchemaAsync();
+            await _container.StartAsync();
+            await ApplySchemaWithRetryAsync();
         }
         catch (Exception)
         {
@@ -61,12 +61,35 @@ public sealed class SqlServerTestFixture : IAsyncLifetime
         return bool.TryParse(value, out var result) && result;
     }
 
-    private async Task ApplySchemaAsync()
+    private async Task ApplySchemaWithRetryAsync()
     {
-        var scriptPath = FindSchemaPath();
-        var script = await File.ReadAllTextAsync(scriptPath);
-        using var connection = CreateConnectionFactory().CreateConnection();
-        await connection.ExecuteAsync(script);
+        const int maxAttempts = 30;
+        var delay = TimeSpan.FromSeconds(1);
+        Exception? lastException = null;
+
+        for (var attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            try
+            {
+                var scriptPath = FindSchemaPath();
+                var script = await File.ReadAllTextAsync(scriptPath);
+                using var connection = CreateConnectionFactory().CreateConnection();
+                await connection.ExecuteAsync(script);
+                return;
+            }
+            catch (Exception ex)
+            {
+                lastException = ex;
+                if (attempt < maxAttempts)
+                {
+                    await Task.Delay(delay);
+                }
+            }
+        }
+
+        throw new InvalidOperationException(
+            $"Could not apply schema after {maxAttempts} attempts.",
+            lastException);
     }
 
     private static string FindSchemaPath()

@@ -1,4 +1,5 @@
 using System.Data;
+using System.Text;
 using Dapper;
 using DbTraffic.Infrastructure.Data;
 using DotNet.Testcontainers.Builders;
@@ -67,14 +68,20 @@ public sealed class SqlServerTestFixture : IAsyncLifetime
         var delay = TimeSpan.FromSeconds(1);
         Exception? lastException = null;
 
+        var scriptPath = FindSchemaPath();
+        var script = await File.ReadAllTextAsync(scriptPath);
+        var batches = SplitBatches(script);
+
         for (var attempt = 1; attempt <= maxAttempts; attempt++)
         {
             try
             {
-                var scriptPath = FindSchemaPath();
-                var script = await File.ReadAllTextAsync(scriptPath);
                 using var connection = CreateConnectionFactory().CreateConnection();
-                await connection.ExecuteAsync(script);
+                foreach (var batch in batches)
+                {
+                    await connection.ExecuteAsync(batch);
+                }
+
                 return;
             }
             catch (Exception ex)
@@ -90,6 +97,30 @@ public sealed class SqlServerTestFixture : IAsyncLifetime
         throw new InvalidOperationException(
             $"Could not apply schema after {maxAttempts} attempts.",
             lastException);
+    }
+
+    private static IReadOnlyList<string> SplitBatches(string script)
+    {
+        var lines = script.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+        var batches = new List<StringBuilder> { new() };
+
+        foreach (var rawLine in lines)
+        {
+            var line = rawLine.Trim();
+            if (line.Equals("GO", StringComparison.OrdinalIgnoreCase))
+            {
+                batches.Add(new StringBuilder());
+            }
+            else
+            {
+                batches[^1].AppendLine(rawLine);
+            }
+        }
+
+        return batches
+            .Select(batch => batch.ToString().Trim())
+            .Where(batch => !string.IsNullOrWhiteSpace(batch))
+            .ToList();
     }
 
     private static string FindSchemaPath()

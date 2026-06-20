@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <ProjectReference Include="..\DbTraffic.Shared\DbTraffic.Shared.csproj" />
+    <ProjectReference Include="..\DbTraffic.Core\DbTraffic.Core.csproj" />
+    <ProjectReference Include="..\DbTraffic.Infrastructure\DbTraffic.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+</Project>

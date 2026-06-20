@@ -48,6 +48,7 @@ builder.Services.AddScoped<IRule, EstimatedDurationExceedsWindowRule>();
 builder.Services.AddScoped<IRule, InstanceResourcePressureRule>();
 builder.Services.AddScoped<IRiskCalculationService, RiskCalculationService>();
 builder.Services.AddScoped<IRiskContextProvider, RiskContextProvider>();
+builder.Services.AddScoped<IRecommendationService, RecommendationService>();
 
 var app = builder.Build();
 
@@ -89,5 +90,6 @@ app.MapInstanceEndpoints();
 app.MapProcessEndpoints();
 app.MapDiscoveryEndpoints();
 app.MapRiskEndpoints();
+app.MapRecommendationEndpoints();
 
 app.Run();

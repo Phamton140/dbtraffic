@@ -63,12 +63,12 @@
 
 | ID | Tarea | Prioridad | Estado | Fase |
 |----|-------|-----------|--------|------|
-| B-032 | Diseñar algoritmo de búsqueda de ventanas de bajo riesgo | Alta | Pendiente | 4 |
-| B-033 | Implementar servicio de recomendaciones | Alta | Pendiente | 4 |
-| B-034 | Crear endpoint `GET /recommendations` | Alta | Pendiente | 4 |
-| B-035 | Crear pantalla de recomendaciones | Alta | Pendiente | 4 |
-| B-036 | Implementar simulación "ejecutar ahora" | Media | Pendiente | 4 |
-| B-037 | Tests del algoritmo de recomendaciones | Alta | Pendiente | 4 |
+| B-032 | Diseñar algoritmo de búsqueda de ventanas de bajo riesgo | Alta | Completado | 4 |
+| B-033 | Implementar servicio de recomendaciones | Alta | Completado | 4 |
+| B-034 | Crear endpoint `GET /recommendations` | Alta | Completado | 4 |
+| B-035 | Crear pantalla de recomendaciones | Alta | Completado | 4 |
+| B-036 | Implementar simulación "ejecutar ahora" | Media | Completado | 4 |
+| B-037 | Tests del algoritmo de recomendaciones | Alta | Completado | 4 |
 
 ## Fase 5: Monitoreo e Historial
 

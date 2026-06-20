@@ -42,6 +42,11 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - Endpoint `GET /api/risk` para consultar riesgo de un proceso en un horario propuesto.
 - Página Blazor `/risk` para análisis visual de riesgo.
 - Tests unitarios del motor de reglas (21 tests, cobertura completa de reglas).
+- Algoritmo de búsqueda de ventanas de bajo riesgo.
+- `RecommendationService` con evaluación iterativa de ventanas candidatas.
+- Endpoint `GET /api/recommendations` con parámetros de rango y granularidad.
+- Página Blazor `/recommendations` para buscar ventanas y simular ejecución "ahora".
+- Tests unitarios del servicio de recomendaciones con Moq.
 
 ## [0.1.0] - Por definir
 

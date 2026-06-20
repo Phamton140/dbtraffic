@@ -89,3 +89,13 @@
 **Impacto**: Las recomendaciones dependen de la calidad del catálogo y de las reglas configuradas. Futuras versiones podrán agregar un módulo predictivo opcional.
 
 **Responsable**: Arquitecto
+
+## 2026-06-20: Algoritmo de recomendaciones por fuerza bruta
+
+**Decisión**: Las recomendaciones de ventanas de ejecución se generan evaluando cada ventana candidata en un rango y granularidad configurables usando el motor de reglas.
+
+**Razón**: Simple, predecible, explicable y suficiente para el MVP.
+
+**Impacto**: Puede ser costoso computacionalmente para rangos grandes o muchos procesos. En futuras versiones se optimizará con índices de disponibilidad o heurísticas.
+
+**Responsable**: Arquitecto

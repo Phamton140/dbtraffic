@@ -1,0 +1,172 @@
+@page "/recommendations"
+@using DbTraffic.Core.Entities
+@using DbTraffic.Core.Rules
+@using DbTraffic.Core.Services
+@inject IHttpClientFactory HttpClientFactory
+@inject NavigationManager Navigation
+
+<PageTitle>Recomendaciones - DbTraffic</PageTitle>
+
+<h1>Recomendaciones de ejecución</h1>
+
+@if (_processes == null)
+{
+    <p><em>Cargando procesos...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    Buscar ventanas
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Proceso</label>
+                        <select class="form-select" @bind="_selectedProcessId">
+                            <option value="">Seleccione...</option>
+                            @foreach (var process in _processes)
+                            {
+                                <option value="@process.Id">@process.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Inicio de búsqueda</label>
+                        <input type="datetime-local" class="form-control" @bind="_searchStart" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Fin de búsqueda</label>
+                        <input type="datetime-local" class="form-control" @bind="_searchEnd" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Granularidad (min)</label>
+                        <input type="number" class="form-control" @bind="_granularityMinutes" />
+                    </div>
+                    <button class="btn btn-primary" @onclick="FindRecommendations" disabled="@(_selectedProcessId == Guid.Empty)">Buscar recomendaciones</button>
+                    <button class="btn btn-secondary ms-2" @onclick="SimulateNow" disabled="@(_selectedProcessId == Guid.Empty)">Simular "ahora"</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            @if (_nowAssessment != null)
+            {
+                <div class="alert @(GetAlertClass(_nowAssessment.OverallLevel))">
+                    <h5>Simulación: ejecutar ahora</h5>
+                    <p class="mb-1">Nivel: <strong>@_nowAssessment.OverallLevel</strong></p>
+                    <p class="mb-0">Score: <strong>@_nowAssessment.TotalScore.ToString("F1")</strong></p>
+                </div>
+            }
+
+            @if (_recommendations != null)
+            {
+                <h3>Ventanas recomendadas</h3>
+                @if (_recommendations.Count == 0)
+                {
+                    <p>No se encontraron ventanas de bajo riesgo en el rango seleccionado.</p>
+                }
+                else
+                {
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Inicio</th>
+                                <th>Fin</th>
+                                <th>Nivel</th>
+                                <th>Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var window in _recommendations)
+                            {
+                                <tr>
+                                    <td>@window.StartTime.ToString("g")</td>
+                                    <td>@window.EndTime.ToString("g")</td>
+                                    <td><span class="badge @GetRiskBadgeClass(window.RiskLevel)">@window.RiskLevel</span></td>
+                                    <td>@window.RiskScore.ToString("F1")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private List<Process>? _processes;
+    private Guid _selectedProcessId;
+    private DateTime _searchStart = DateTime.Now;
+    private DateTime _searchEnd = DateTime.Now.AddDays(3);
+    private int _granularityMinutes = 30;
+    private List<RecommendationWindow>? _recommendations;
+    private RiskAssessment? _nowAssessment;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var client = CreateClient();
+        _processes = await client.GetFromJsonAsync<List<Process>>("api/processes");
+    }
+
+    private async Task FindRecommendations()
+    {
+        if (_selectedProcessId == Guid.Empty) return;
+
+        _recommendations = null;
+        _nowAssessment = null;
+
+        var client = CreateClient();
+        var url = $"api/recommendations?processId={_selectedProcessId}" +
+                  $"&searchStart={Uri.EscapeDataString(_searchStart.ToString("O"))}" +
+                  $"&searchEnd={Uri.EscapeDataString(_searchEnd.ToString("O"))}" +
+                  $"&granularityMinutes={_granularityMinutes}";
+
+        var response = await client.GetAsync(url);
+        if (response.IsSuccessStatusCode)
+        {
+            _recommendations = await response.Content.ReadFromJsonAsync<List<RecommendationWindow>>();
+        }
+    }
+
+    private async Task SimulateNow()
+    {
+        if (_selectedProcessId == Guid.Empty) return;
+
+        _recommendations = null;
+        var client = CreateClient();
+        var response = await client.GetAsync($"api/risk?processId={_selectedProcessId}");
+        if (response.IsSuccessStatusCode)
+        {
+            _nowAssessment = await response.Content.ReadFromJsonAsync<RiskAssessment>();
+        }
+    }
+
+    private static string GetRiskBadgeClass(RiskLevel level) => level switch
+    {
+        RiskLevel.None => "bg-success",
+        RiskLevel.Low => "bg-info",
+        RiskLevel.Medium => "bg-warning",
+        RiskLevel.High => "bg-danger",
+        RiskLevel.Critical => "bg-dark",
+        _ => "bg-secondary"
+    };
+
+    private static string GetAlertClass(RiskLevel level) => level switch
+    {
+        RiskLevel.None => "alert-success",
+        RiskLevel.Low => "alert-info",
+        RiskLevel.Medium => "alert-warning",
+        RiskLevel.High or RiskLevel.Critical => "alert-danger",
+        _ => "alert-secondary"
+    };
+
+    private HttpClient CreateClient()
+    {
+        var client = HttpClientFactory.CreateClient();
+        client.BaseAddress = new Uri(Navigation.BaseUri);
+        return client;
+    }
+}

@@ -1,6 +1,7 @@
 using System.Data;
 using Dapper;
 using DbTraffic.Infrastructure.Data;
+using DotNet.Testcontainers.Builders;
 using Testcontainers.MsSql;
 
 namespace DbTraffic.Infrastructure.Tests;
@@ -26,11 +27,24 @@ public sealed class SqlServerTestFixture : IAsyncLifetime
         }
 
         _container = new MsSqlBuilder()
-            .WithImage("mcr.microsoft.com/mssql/server:2022-latest")
+            .WithImage("mcr.microsoft.com/mssql/server:2019-latest")
             .Build();
 
-        await _container.StartAsync();
-        await ApplySchemaAsync();
+        try
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+            await _container.StartAsync(cts.Token);
+            await ApplySchemaAsync();
+        }
+        catch (Exception)
+        {
+            var (stdout, stderr) = await _container.GetLogsAsync();
+            Console.WriteLine("=== SQL Server container stdout ===");
+            Console.WriteLine(stdout);
+            Console.WriteLine("=== SQL Server container stderr ===");
+            Console.WriteLine(stderr);
+            throw;
+        }
     }
 
     public async Task DisposeAsync()

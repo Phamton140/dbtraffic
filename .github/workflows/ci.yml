@@ -26,6 +26,12 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      - name: Inspect Docker environment
+        run: |
+          docker version
+          docker info
+          docker system df
+
       - name: Restore dependencies
         run: dotnet restore
 
@@ -35,6 +41,7 @@ jobs:
       - name: Run tests
         env:
           RUN_INTEGRATION_TESTS: true
+        timeout-minutes: 10
         run: dotnet test --no-build --configuration Release --verbosity normal
 
       - name: Check code formatting

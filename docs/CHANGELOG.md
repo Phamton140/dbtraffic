@@ -35,6 +35,13 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - Página Blazor `/discovery` para ejecutar descubrimiento y asociar jobs a procesos.
 - Tests de integración del repositorio de descubrimiento.
 - Dependencias Dapper y Microsoft.Extensions.Hosting/Logging/Options.
+- Motor de reglas: abstracciones `IRule`, `RuleContext`, `RuleResult`, `RiskLevel`.
+- Reglas implementadas: `ObjectOverlapRule`, `HighIntensityOverlapRule`, `EstimatedDurationExceedsWindowRule`, `InstanceResourcePressureRule`.
+- `RiskCalculationService` para agregar scores y determinar nivel de riesgo.
+- `RiskContextProvider` para construir el contexto desde repositorios y DMV.
+- Endpoint `GET /api/risk` para consultar riesgo de un proceso en un horario propuesto.
+- Página Blazor `/risk` para análisis visual de riesgo.
+- Tests unitarios del motor de reglas (21 tests, cobertura completa de reglas).
 
 ## [0.1.0] - Por definir
 

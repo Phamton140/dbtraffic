@@ -79,3 +79,13 @@
 **Impacto**: Para descubrir objetos de una base de datos específica, el usuario debe configurar la instancia apuntando a esa base de datos. En futuras versiones se implementará descubrimiento multi-base de datos.
 
 **Responsable**: Arquitecto
+
+## 2026-06-20: Motor de reglas sin inteligencia artificial
+
+**Decisión**: El cálculo de riesgo se basa en un motor de reglas explícitas y ponderación de scores, sin usar ML ni IA.
+
+**Razón**: Cumplir con la restricción del MVP, garantizar explicabilidad y evitar dependencias externas.
+
+**Impacto**: Las recomendaciones dependen de la calidad del catálogo y de las reglas configuradas. Futuras versiones podrán agregar un módulo predictivo opcional.
+
+**Responsable**: Arquitecto

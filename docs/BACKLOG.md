@@ -49,15 +49,15 @@
 
 | ID | Tarea | Prioridad | Estado | Fase |
 |----|-------|-----------|--------|------|
-| B-023 | Definir abstracciones del motor de reglas (`IRule`, `RuleContext`, `RuleResult`) | Alta | Pendiente | 3 |
-| B-024 | Implementar `ObjectOverlapRule` | Alta | Pendiente | 3 |
-| B-025 | Implementar `HighIntensityOverlapRule` | Alta | Pendiente | 3 |
-| B-026 | Implementar `EstimatedDurationExceedsWindowRule` | Media | Pendiente | 3 |
-| B-027 | Implementar `InstanceResourcePressureRule` | Media | Pendiente | 3 |
-| B-028 | Implementar cálculo de score de riesgo | Alta | Pendiente | 3 |
-| B-029 | Crear endpoint `GET /risk` | Alta | Pendiente | 3 |
-| B-030 | Crear pantalla de análisis de riesgo | Alta | Pendiente | 3 |
-| B-031 | Tests unitarios del motor de reglas (>80%) | Alta | Pendiente | 3 |
+| B-023 | Definir abstracciones del motor de reglas (`IRule`, `RuleContext`, `RuleResult`) | Alta | Completado | 3 |
+| B-024 | Implementar `ObjectOverlapRule` | Alta | Completado | 3 |
+| B-025 | Implementar `HighIntensityOverlapRule` | Alta | Completado | 3 |
+| B-026 | Implementar `EstimatedDurationExceedsWindowRule` | Media | Completado | 3 |
+| B-027 | Implementar `InstanceResourcePressureRule` | Media | Completado | 3 |
+| B-028 | Implementar cálculo de score de riesgo | Alta | Completado | 3 |
+| B-029 | Crear endpoint `GET /risk` | Alta | Completado | 3 |
+| B-030 | Crear pantalla de análisis de riesgo | Alta | Completado | 3 |
+| B-031 | Tests unitarios del motor de reglas (>80%) | Alta | Completado | 3 |
 
 ## Fase 4: Recomendaciones
 

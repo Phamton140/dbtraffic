@@ -1,7 +1,10 @@
 using DbTraffic.Core.Repositories;
+using DbTraffic.Core.Rules;
+using DbTraffic.Core.Services;
 using DbTraffic.Infrastructure.Data;
 using DbTraffic.Infrastructure.Discovery;
 using DbTraffic.Infrastructure.Repositories;
+using DbTraffic.Infrastructure.Services;
 using DbTraffic.Infrastructure.SqlServer;
 using DbTraffic.Shared.Models;
 using DbTraffic.Web.Components;
@@ -37,6 +40,14 @@ builder.Services.Configure<DiscoveryWorkerOptions>(options =>
     options.Interval = TimeSpan.FromMinutes(builder.Configuration.GetValue<int>("DbTraffic:Discovery:IntervalMinutes", 60));
 });
 builder.Services.AddHostedService<DiscoveryWorker>();
+
+// Rules engine
+builder.Services.AddScoped<IRule, ObjectOverlapRule>();
+builder.Services.AddScoped<IRule, HighIntensityOverlapRule>();
+builder.Services.AddScoped<IRule, EstimatedDurationExceedsWindowRule>();
+builder.Services.AddScoped<IRule, InstanceResourcePressureRule>();
+builder.Services.AddScoped<IRiskCalculationService, RiskCalculationService>();
+builder.Services.AddScoped<IRiskContextProvider, RiskContextProvider>();
 
 var app = builder.Build();
 
@@ -77,5 +88,6 @@ app.MapGet("/api/health/sql", async (ISqlServerInstanceClient client, Cancellati
 app.MapInstanceEndpoints();
 app.MapProcessEndpoints();
 app.MapDiscoveryEndpoints();
+app.MapRiskEndpoints();
 
 app.Run();

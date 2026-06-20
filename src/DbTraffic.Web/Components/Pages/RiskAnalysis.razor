@@ -1,0 +1,128 @@
+@page "/risk"
+@using DbTraffic.Core.Entities
+@using DbTraffic.Core.Rules
+@using DbTraffic.Core.Services
+@inject IHttpClientFactory HttpClientFactory
+@inject NavigationManager Navigation
+
+<PageTitle>Análisis de riesgo - DbTraffic</PageTitle>
+
+<h1>Análisis de riesgo</h1>
+
+@if (_processes == null)
+{
+    <p><em>Cargando procesos...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    Simular ejecución
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Proceso</label>
+                        <select class="form-select" @bind="_selectedProcessId">
+                            <option value="">Seleccione...</option>
+                            @foreach (var process in _processes)
+                            {
+                                <option value="@process.Id">@process.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Fecha y hora propuesta</label>
+                        <input type="datetime-local" class="form-control" @bind="_proposedStartTime" />
+                    </div>
+                    <button class="btn btn-primary" @onclick="AnalyzeRisk" disabled="@(_selectedProcessId == Guid.Empty)">Analizar riesgo</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            @if (_assessment != null)
+            {
+                <div class="card">
+                    <div class="card-header">
+                        Resultado del análisis
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <h4>
+                                Nivel de riesgo:
+                                <span class="badge @GetRiskBadgeClass(_assessment.OverallLevel)">@_assessment.OverallLevel</span>
+                            </h4>
+                            <p class="mb-1">Score total: <strong>@_assessment.TotalScore.ToString("F1")</strong></p>
+                        </div>
+
+                        <h5>Hallazgos</h5>
+                        @if (_assessment.Findings.All(f => f.Level == RiskLevel.None))
+                        {
+                            <p class="text-success">No se detectaron riesgos.</p>
+                        }
+                        else
+                        {
+                            <ul class="list-group">
+                                @foreach (var finding in _assessment.Findings.Where(f => f.Level != RiskLevel.None))
+                                {
+                                    <li class="list-group-item">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">@finding.RuleName</h6>
+                                            <span class="badge @GetRiskBadgeClass(finding.Level)">@finding.Level</span>
+                                        </div>
+                                        <p class="mb-1">@finding.Message</p>
+                                        <small>Score: @finding.Score.ToString("F1")</small>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private List<Process>? _processes;
+    private Guid _selectedProcessId;
+    private DateTime _proposedStartTime = DateTime.Now;
+    private RiskAssessment? _assessment;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var client = CreateClient();
+        _processes = await client.GetFromJsonAsync<List<Process>>("api/processes");
+    }
+
+    private async Task AnalyzeRisk()
+    {
+        if (_selectedProcessId == Guid.Empty) return;
+
+        var client = CreateClient();
+        var response = await client.GetAsync($"api/risk?processId={_selectedProcessId}&proposedStartTime={Uri.EscapeDataString(_proposedStartTime.ToString("O"))}");
+        if (response.IsSuccessStatusCode)
+        {
+            _assessment = await response.Content.ReadFromJsonAsync<RiskAssessment>();
+        }
+    }
+
+    private static string GetRiskBadgeClass(RiskLevel level) => level switch
+    {
+        RiskLevel.None => "bg-success",
+        RiskLevel.Low => "bg-info",
+        RiskLevel.Medium => "bg-warning",
+        RiskLevel.High => "bg-danger",
+        RiskLevel.Critical => "bg-dark",
+        _ => "bg-secondary"
+    };
+
+    private HttpClient CreateClient()
+    {
+        var client = HttpClientFactory.CreateClient();
+        client.BaseAddress = new Uri(Navigation.BaseUri);
+        return client;
+    }
+}

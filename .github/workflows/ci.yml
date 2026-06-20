@@ -18,7 +18,8 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      DBTRAFFIC_TEST_CONNECTION_STRING: "Server=localhost,1433;Database=DbTraffic;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True;"
+      DBTRAFFIC_TEST_CONNECTION_STRING: "Server=127.0.0.1,1433;Database=DbTraffic;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True;Encrypt=False;"
+      SQLCMDPASSWORD: YourStrong@Passw0rd
 
     services:
       sqlserver:
@@ -29,6 +30,7 @@ jobs:
           MSSQL_PID: Developer
         ports:
           - 1433:1433
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -49,20 +51,28 @@ jobs:
           echo '/opt/mssql-tools18/bin' >> $GITHUB_PATH
 
       - name: Wait for SQL Server
+        timeout-minutes: 2
         run: |
-          for i in {1..30}; do
-            if sqlcmd -S localhost,1433 -U sa -P YourStrong@Passw0rd -Q "SELECT 1" > /dev/null 2>&1; then
+          for i in {1..60}; do
+            if sqlcmd -S 127.0.0.1,1433 -U sa -C -Q "SELECT 1" > /dev/null 2>&1; then
               echo "SQL Server is ready"
-              break
+              exit 0
             fi
             echo "Waiting for SQL Server... attempt $i"
             sleep 2
           done
+          echo "SQL Server did not become ready in time"
+          exit 1
+
+      - name: Verify test connection string
+        run: |
+          echo "Connection string configured (password hidden):"
+          echo "$DBTRAFFIC_TEST_CONNECTION_STRING" | sed 's/Password=[^;]*/Password=***/g'
 
       - name: Create test database
         run: |
-          sqlcmd -S localhost,1433 -U sa -P YourStrong@Passw0rd -d master -i database/schema.sql
-          sqlcmd -S localhost,1433 -U sa -P YourStrong@Passw0rd -d master -i database/seed.sql
+          sqlcmd -S 127.0.0.1,1433 -U sa -C -d master -i database/schema.sql
+          sqlcmd -S 127.0.0.1,1433 -U sa -C -d master -i database/seed.sql
 
       - name: Restore dependencies
         run: dotnet restore
@@ -72,8 +82,6 @@ jobs:
 
       - name: Run tests
         run: dotnet test --no-build --configuration Release --verbosity normal
-        env:
-          DBTRAFFIC_TEST_CONNECTION_STRING: ${{ env.DBTRAFFIC_TEST_CONNECTION_STRING }}
 
       - name: Check code formatting
         run: dotnet format --verify-no-changes --verbosity diagnostic

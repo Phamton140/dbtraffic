@@ -47,6 +47,15 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - Endpoint `GET /api/recommendations` con parámetros de rango y granularidad.
 - Página Blazor `/recommendations` para buscar ventanas y simular ejecución "ahora".
 - Tests unitarios del servicio de recomendaciones con Moq.
+- Entidades de monitoreo e historial: `Execution`, `InstanceSnapshot`.
+- Repositorios `ExecutionRepository` e `InstanceSnapshotRepository`.
+- Modelos DMV: `InstanceMetrics`, `JobHistoryEntry`.
+- Extensión de `SqlServerInstanceClient` para métricas de instancia e historial de jobs.
+- `MonitoringService` y `MonitoringWorker` para captura periódica de snapshots.
+- `ExecutionService` para registro manual, importación desde `msdb.dbo.sysjobhistory` y calibración de duraciones.
+- Endpoints `/api/monitoring` y `/api/executions`.
+- Páginas Blazor `/monitoring` y `/history`.
+- Tests unitarios e integración para ejecuciones y snapshots.
 
 ## [0.1.0] - Por definir
 

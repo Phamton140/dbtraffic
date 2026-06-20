@@ -3,6 +3,7 @@ using DbTraffic.Core.Rules;
 using DbTraffic.Core.Services;
 using DbTraffic.Infrastructure.Data;
 using DbTraffic.Infrastructure.Discovery;
+using DbTraffic.Infrastructure.Monitoring;
 using DbTraffic.Infrastructure.Repositories;
 using DbTraffic.Infrastructure.Services;
 using DbTraffic.Infrastructure.SqlServer;
@@ -34,12 +35,22 @@ builder.Services.AddSingleton<IDbConnectionFactory, SqlConnectionFactory>();
 builder.Services.AddScoped<IProcessRepository, ProcessRepository>();
 builder.Services.AddScoped<IInstanceRepository, InstanceRepository>();
 builder.Services.AddScoped<IDiscoveryRepository, DiscoveryRepository>();
+builder.Services.AddScoped<IExecutionRepository, ExecutionRepository>();
+builder.Services.AddScoped<IInstanceSnapshotRepository, InstanceSnapshotRepository>();
 builder.Services.AddScoped<DiscoveryService>();
+builder.Services.AddScoped<IMonitoringService, MonitoringService>();
+builder.Services.AddScoped<IExecutionService, ExecutionService>();
 builder.Services.Configure<DiscoveryWorkerOptions>(options =>
 {
     options.Interval = TimeSpan.FromMinutes(builder.Configuration.GetValue<int>("DbTraffic:Discovery:IntervalMinutes", 60));
 });
+builder.Services.Configure<MonitoringWorkerOptions>(options =>
+{
+    options.Interval = TimeSpan.FromMinutes(builder.Configuration.GetValue<int>("DbTraffic:Monitoring:IntervalMinutes", 5));
+    options.Retention = TimeSpan.FromDays(builder.Configuration.GetValue<int>("DbTraffic:Monitoring:RetentionDays", 7));
+});
 builder.Services.AddHostedService<DiscoveryWorker>();
+builder.Services.AddHostedService<MonitoringWorker>();
 
 // Rules engine
 builder.Services.AddScoped<IRule, ObjectOverlapRule>();
@@ -91,5 +102,7 @@ app.MapProcessEndpoints();
 app.MapDiscoveryEndpoints();
 app.MapRiskEndpoints();
 app.MapRecommendationEndpoints();
+app.MapMonitoringEndpoints();
+app.MapExecutionEndpoints();
 
 app.Run();

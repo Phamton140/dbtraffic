@@ -1,0 +1,152 @@
+@page "/monitoring"
+@using DbTraffic.Core.Entities
+@using DbTraffic.Shared.Models.Dmv
+@inject IHttpClientFactory HttpClientFactory
+@inject NavigationManager Navigation
+
+<PageTitle>Monitoreo - DbTraffic</PageTitle>
+
+<h1>Monitoreo de instancias</h1>
+
+@if (_instances == null)
+{
+    <p><em>Cargando instancias...</em></p>
+}
+else
+{
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <label class="form-label">Instancia</label>
+            <select class="form-select" @bind="_selectedInstanceId" @bind:after="OnInstanceChangedAsync">
+                <option value="">Seleccione...</option>
+                @foreach (var instance in _instances)
+                {
+                    <option value="@instance.Id">@instance.Name</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-8 d-flex align-items-end">
+            <button class="btn btn-primary me-2" @onclick="RefreshMetricsAsync" disabled="@(_selectedInstanceId == Guid.Empty)">Actualizar</button>
+            <button class="btn btn-secondary" @onclick="CaptureSnapshotAsync" disabled="@(_selectedInstanceId == Guid.Empty)">Capturar snapshot</button>
+        </div>
+    </div>
+
+    @if (_metrics != null)
+    {
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">CPU</h5>
+                        <p class="card-text display-6">@_metrics.CpuPercent.ToString("F1")%</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">Memoria</h5>
+                        <p class="card-text display-6">@_metrics.MemoryPercent.ToString("F1")%</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">Requests activos</h5>
+                        <p class="card-text display-6">@_metrics.ActiveRequests</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">Bloqueos</h5>
+                        <p class="card-text display-6">@_metrics.BlockingSessions</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h3>Requests activos</h3>
+        @if (_metrics.ActiveRequestsDetail.Count == 0)
+        {
+            <p>No hay requests activos.</p>
+        }
+        else
+        {
+            <table class="table table-striped table-sm">
+                <thead>
+                    <tr>
+                        <th>Session</th>
+                        <th>Status</th>
+                        <th>Command</th>
+                        <th>Database</th>
+                        <th>Login</th>
+                        <th>Program</th>
+                        <th>Start</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var request in _metrics.ActiveRequestsDetail)
+                    {
+                        <tr>
+                            <td>@request.SessionId</td>
+                            <td>@request.Status</td>
+                            <td>@request.Command</td>
+                            <td>@request.DatabaseName</td>
+                            <td>@request.LoginName</td>
+                            <td>@request.ProgramName</td>
+                            <td>@request.StartTime?.ToString("g")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    }
+}
+
+@code {
+    private List<Instance>? _instances;
+    private Guid _selectedInstanceId;
+    private InstanceMetrics? _metrics;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var client = CreateClient();
+        _instances = await client.GetFromJsonAsync<List<Instance>>("api/instances");
+    }
+
+    private async Task OnInstanceChangedAsync()
+    {
+        await RefreshMetricsAsync();
+    }
+
+    private async Task RefreshMetricsAsync()
+    {
+        if (_selectedInstanceId == Guid.Empty)
+        {
+            _metrics = null;
+            return;
+        }
+
+        var client = CreateClient();
+        _metrics = await client.GetFromJsonAsync<InstanceMetrics>($"api/monitoring/instances/{_selectedInstanceId}/metrics");
+    }
+
+    private async Task CaptureSnapshotAsync()
+    {
+        if (_selectedInstanceId == Guid.Empty) return;
+
+        var client = CreateClient();
+        await client.PostAsync($"api/monitoring/instances/{_selectedInstanceId}/snapshot", null);
+        await RefreshMetricsAsync();
+    }
+
+    private HttpClient CreateClient()
+    {
+        var client = HttpClientFactory.CreateClient();
+        client.BaseAddress = new Uri(Navigation.BaseUri);
+        return client;
+    }
+}

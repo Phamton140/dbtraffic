@@ -7,7 +7,9 @@ namespace DbTraffic.Infrastructure.Tests;
 
 public class DiscoveryRepositoryTests
 {
-    private const string ConnectionString = "Server=.;Database=DbTraffic;Trusted_Connection=True;TrustServerCertificate=True;";
+    private static readonly string ConnectionString =
+        Environment.GetEnvironmentVariable("DBTRAFFIC_TEST_CONNECTION_STRING")
+        ?? "Server=.;Database=DbTraffic;Trusted_Connection=True;TrustServerCertificate=True;";
 
     private static IDbConnectionFactory CreateFactory() => new SqlConnectionFactory(ConnectionString);
 

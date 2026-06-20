@@ -17,8 +17,8 @@
 | B-003 | Crear solución .NET 8 con proyectos Core, Infrastructure, Shared, Web y tests | Alta | Completado | 0 |
 | B-004 | Definir modelo de dominio inicial y esquema SQL Server del producto | Alta | Completado | 0 |
 | B-005 | Implementar conexión de prueba y lectura básica de DMV | Alta | Completado | 0 |
-| B-006 | Configurar pipeline de CI básica (build + test) | Media | Pendiente | 0 |
-| B-007 | Documentar guía de instalación local | Media | Pendiente | 0 |
+| B-006 | Configurar pipeline de CI básica (build + test) | Media | Completado | 0 |
+| B-007 | Documentar guía de instalación local | Media | Completado | 0 |
 
 ## Fase 1: Catálogo de Procesos
 

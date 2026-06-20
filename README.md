@@ -77,6 +77,7 @@ Consulta la documentación en `/docs` para más detalles.
 
 ## Documentación relevante
 
+- [Guía de instalación local](docs/SETUP.md)
 - [Arquitectura](docs/ARCHITECTURE.md)
 - [Alcance del MVP](docs/MVP-SCOPE.md)
 - [Backlog](docs/BACKLOG.md)
@@ -84,6 +85,10 @@ Consulta la documentación en `/docs` para más detalles.
 - [Decisiones de producto](docs/PRODUCT-DECISIONS.md)
 - [Registro de cambios](docs/CHANGELOG.md)
 - [ADRs](docs/ADRs/)
+
+## Integración continua
+
+El repositorio incluye un workflow de GitHub Actions en `.github/workflows/ci.yml` que compila la solución y ejecuta las pruebas en cada push y pull request.
 
 ## Licencia
 

@@ -17,6 +17,8 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - Modelos iniciales para instancias y requests activas.
 - Endpoint de prueba `/api/health/sql` para validar conectividad con SQL Server.
 - Dependencia `Microsoft.Data.SqlClient` para acceso a SQL Server.
+- Workflow de GitHub Actions CI en `.github/workflows/ci.yml`.
+- Guía de instalación local en `docs/SETUP.md`.
 
 ## [0.1.0] - Por definir
 

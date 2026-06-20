@@ -39,3 +39,13 @@
 **Impacto**: Mayor cantidad de proyectos que una solución monolítica simple, pero mejor mantenibilidad a mediano plazo.
 
 **Responsable**: Arquitecto
+
+## 2026-06-20: Uso de Microsoft.Data.SqlClient para acceso a SQL Server
+
+**Decisión**: Usar `Microsoft.Data.SqlClient` como proveedor de acceso a datos para SQL Server en lugar de `System.Data.SqlClient`.
+
+**Razón**: Es el proveedor recomendado y mantenido por Microsoft para .NET Core/.NET 5+, con mejoras de rendimiento y seguridad.
+
+**Impacto**: Dependencia adicional, pero alineada con el ecosistema .NET moderno.
+
+**Responsable**: Arquitecto

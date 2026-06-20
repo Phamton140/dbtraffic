@@ -7,6 +7,23 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Fixed
+- `SqlServerInstanceClient.GetInstanceMetricsAsync`: corrección del error `Invalid column name 'timestamp'` al incluir `[timestamp]` en el SELECT interno de `sys.dm_os_ring_buffers`.
+- `SqlServerInstanceClient.GetInstanceMetricsAsync`: separación de métricas en consultas independientes (ActiveRequests, BlockingSessions, WaitTimeMs, CpuPercent, MemoryPercent).
+- Degradación elegente en `SqlServerInstanceClient`: si una métrica falla, se registra una advertencia y se devuelve `0` sin lanzar excepción ni detener `MonitoringWorker`.
+- `SqlServerInstanceClient.CanConnectAsync`: ahora captura excepciones durante la apertura de conexión, evitando que connection strings inválidas propaguen errores.
+- `DiscoveryService.DiscoverInstanceAsync`: ya no relanza excepciones cuando el descubrimiento de una instancia falla. Registra el error y continúa con las demás instancias activas.
+
+### Changed
+- `MonitoringService` y `ExecutionService` ahora reciben `ILogger<SqlServerInstanceClient>` y lo pasan a las instancias de `SqlServerInstanceClient`.
+
+### Added
+- Tests para `SqlServerInstanceClient`: verificación de métricas contra Testcontainers y validación de `CanConnectAsync` con connection string inválida.
+- Tests para `DiscoveryService`: validación de que una instancia defectuosa no impide descubrir las demás.
+
+### Added
+- Tests para `SqlServerInstanceClient`: verificación de métricas contra Testcontainers y validación de `CanConnectAsync` con connection string inválida.
+
 ## [0.1.0] - 2026-06-20
 
 ### Added

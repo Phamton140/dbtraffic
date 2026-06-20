@@ -2,6 +2,8 @@ using DbTraffic.Core.Entities;
 using DbTraffic.Core.Repositories;
 using DbTraffic.Core.Services;
 using DbTraffic.Infrastructure.Services;
+using DbTraffic.Infrastructure.SqlServer;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
 namespace DbTraffic.Infrastructure.Tests;
@@ -18,7 +20,8 @@ public class ExecutionServiceTests
         _service = new ExecutionService(
             _executionRepositoryMock.Object,
             _processRepositoryMock.Object,
-            _instanceRepositoryMock.Object);
+            _instanceRepositoryMock.Object,
+            NullLogger<SqlServerInstanceClient>.Instance);
     }
 
     [Fact]

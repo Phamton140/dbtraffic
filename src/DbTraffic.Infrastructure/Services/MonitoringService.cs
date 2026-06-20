@@ -3,6 +3,7 @@ using DbTraffic.Core.Repositories;
 using DbTraffic.Core.Services;
 using DbTraffic.Infrastructure.SqlServer;
 using DbTraffic.Shared.Models.Dmv;
+using Microsoft.Extensions.Logging;
 
 namespace DbTraffic.Infrastructure.Services;
 
@@ -10,13 +11,16 @@ public sealed class MonitoringService : IMonitoringService
 {
     private readonly IInstanceRepository _instanceRepository;
     private readonly IInstanceSnapshotRepository _snapshotRepository;
+    private readonly ILogger<SqlServerInstanceClient> _instanceClientLogger;
 
     public MonitoringService(
         IInstanceRepository instanceRepository,
-        IInstanceSnapshotRepository snapshotRepository)
+        IInstanceSnapshotRepository snapshotRepository,
+        ILogger<SqlServerInstanceClient> instanceClientLogger)
     {
         _instanceRepository = instanceRepository;
         _snapshotRepository = snapshotRepository;
+        _instanceClientLogger = instanceClientLogger;
     }
 
     public async Task<InstanceSnapshot> CaptureSnapshotAsync(Guid instanceId, CancellationToken cancellationToken = default)
@@ -63,13 +67,13 @@ public sealed class MonitoringService : IMonitoringService
             throw new InvalidOperationException($"Instance {instanceId} not found.");
         }
 
-        await using var client = new SqlServerInstanceClient(instance.ConnectionString);
+        await using var client = new SqlServerInstanceClient(instance.ConnectionString, _instanceClientLogger);
         return await client.GetActiveRequestsAsync(cancellationToken);
     }
 
-    private static async Task<InstanceMetrics> GetMetricsInternalAsync(string connectionString, CancellationToken cancellationToken)
+    private async Task<InstanceMetrics> GetMetricsInternalAsync(string connectionString, CancellationToken cancellationToken)
     {
-        await using var client = new SqlServerInstanceClient(connectionString);
+        await using var client = new SqlServerInstanceClient(connectionString, _instanceClientLogger);
         return await client.GetInstanceMetricsAsync(cancellationToken);
     }
 }

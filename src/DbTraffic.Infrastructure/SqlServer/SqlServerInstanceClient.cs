@@ -1,32 +1,37 @@
 using DbTraffic.Shared.Models;
 using DbTraffic.Shared.Models.Dmv;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Logging;
 
 namespace DbTraffic.Infrastructure.SqlServer;
 
 public sealed class SqlServerInstanceClient : ISqlServerInstanceClient, IAsyncDisposable
 {
     private readonly string _connectionString;
+    private readonly ILogger<SqlServerInstanceClient>? _logger;
     private SqlConnection? _connection;
 
-    public SqlServerInstanceClient(InstanceConnectionInfo connectionInfo)
+    public SqlServerInstanceClient(InstanceConnectionInfo connectionInfo, ILogger<SqlServerInstanceClient> logger)
     {
         ArgumentNullException.ThrowIfNull(connectionInfo);
+        ArgumentNullException.ThrowIfNull(logger);
         _connectionString = connectionInfo.ConnectionString
             ?? throw new ArgumentException("ConnectionString is required", nameof(connectionInfo));
+        _logger = logger;
     }
 
-    public SqlServerInstanceClient(string connectionString)
+    public SqlServerInstanceClient(string connectionString, ILogger<SqlServerInstanceClient>? logger = null)
     {
         _connectionString = connectionString
             ?? throw new ArgumentNullException(nameof(connectionString));
+        _logger = logger;
     }
 
     public async Task<bool> CanConnectAsync(CancellationToken cancellationToken = default)
     {
-        await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
         try
         {
+            await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
             using var command = new SqlCommand("SELECT 1", _connection);
             await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
             return true;
@@ -86,38 +91,118 @@ public sealed class SqlServerInstanceClient : ISqlServerInstanceClient, IAsyncDi
     {
         await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
 
-        const string query = @"
-            SELECT
-                (SELECT COUNT(*) FROM sys.dm_exec_requests WHERE session_id <> @@SPID) AS ActiveRequests,
-                (SELECT COUNT(DISTINCT blocking_session_id) FROM sys.dm_exec_requests WHERE blocking_session_id <> 0) AS BlockingSessions,
-                ISNULL((SELECT SUM(wait_time) FROM sys.dm_exec_requests WHERE session_id <> @@SPID), 0) AS WaitTimeMs,
-                ISNULL((SELECT AVG(100 - SystemIdle)
-                        FROM (SELECT TOP 10
-                                CAST(record.value('(./Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'INT') AS FLOAT) AS SystemIdle
-                              FROM (SELECT CAST(record AS XML) AS record
-                                    FROM sys.dm_os_ring_buffers
-                                    WHERE ring_buffer_type = N'RING_BUFFER_SCHEDULER_MONITOR'
-                                      AND record LIKE '%<SystemIdle>%') t
-                              ORDER BY timestamp DESC) idle), 0) AS CpuPercent,
-                ISNULL((SELECT (pm.physical_memory_in_use_kb / 1024.0) / (sm.total_physical_memory_kb / 1024.0) * 100.0
-                        FROM sys.dm_os_process_memory pm
-                        CROSS JOIN sys.dm_os_sys_memory sm), 0) AS MemoryPercent;";
-
-        using var command = new SqlCommand(query, _connection);
-        using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-
-        var metrics = new InstanceMetrics();
-        if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        var metrics = new InstanceMetrics
         {
-            metrics.ActiveRequests = reader.IsDBNull(0) ? 0 : reader.GetInt32(0);
-            metrics.BlockingSessions = reader.IsDBNull(1) ? 0 : reader.GetInt32(1);
-            metrics.WaitTimeMs = reader.IsDBNull(2) ? 0 : reader.GetInt64(2);
-            metrics.CpuPercent = reader.IsDBNull(3) ? 0 : reader.GetDouble(3);
-            metrics.MemoryPercent = reader.IsDBNull(4) ? 0 : reader.GetDouble(4);
+            ActiveRequests = await GetMetricAsync(
+                "ActiveRequests",
+                "SELECT COUNT(*) FROM sys.dm_exec_requests WHERE session_id <> @@SPID;",
+                reader => reader.GetInt32(0),
+                cancellationToken),
+            BlockingSessions = await GetMetricAsync(
+                "BlockingSessions",
+                "SELECT COUNT(DISTINCT blocking_session_id) FROM sys.dm_exec_requests WHERE blocking_session_id <> 0;",
+                reader => reader.GetInt32(0),
+                cancellationToken),
+            WaitTimeMs = await GetMetricAsync(
+                "WaitTimeMs",
+                "SELECT ISNULL(SUM(wait_time), 0) FROM sys.dm_exec_requests WHERE session_id <> @@SPID;",
+                reader => reader.GetInt64(0),
+                cancellationToken),
+            CpuPercent = await GetCpuPercentAsync(cancellationToken),
+            MemoryPercent = await GetMemoryPercentAsync(cancellationToken)
+        };
+
+        metrics.ActiveRequestsDetail = await GetActiveRequestsDetailSafelyAsync(cancellationToken).ConfigureAwait(false);
+        return metrics;
+    }
+
+    private async Task<T> GetMetricAsync<T>(
+        string metricName,
+        string query,
+        Func<SqlDataReader, T> readValue,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var command = new SqlCommand(query, _connection);
+            using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false) && !reader.IsDBNull(0))
+            {
+                return readValue(reader);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to read metric {MetricName}. Returning default value.", metricName);
         }
 
-        metrics.ActiveRequestsDetail = await GetActiveRequestsAsync(cancellationToken).ConfigureAwait(false);
-        return metrics;
+        return default!;
+    }
+
+    private async Task<double> GetCpuPercentAsync(CancellationToken cancellationToken)
+    {
+        const string query = @"
+            SELECT ISNULL(AVG(100 - SystemIdle), 0)
+            FROM (SELECT TOP 10
+                    CAST(record.value('(./Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'INT') AS FLOAT) AS SystemIdle
+                  FROM (SELECT CAST(record AS XML) AS record, [timestamp]
+                        FROM sys.dm_os_ring_buffers
+                        WHERE ring_buffer_type = N'RING_BUFFER_SCHEDULER_MONITOR'
+                          AND record LIKE '%<SystemIdle>%') t
+                  ORDER BY [timestamp] DESC) idle;";
+
+        try
+        {
+            using var command = new SqlCommand(query, _connection);
+            using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false) && !reader.IsDBNull(0))
+            {
+                return reader.GetDouble(0);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to read CPU percent from sys.dm_os_ring_buffers. Returning 0.");
+        }
+
+        return 0;
+    }
+
+    private async Task<double> GetMemoryPercentAsync(CancellationToken cancellationToken)
+    {
+        const string query = @"
+            SELECT ISNULL((pm.physical_memory_in_use_kb / 1024.0) / (sm.total_physical_memory_kb / 1024.0) * 100.0, 0)
+            FROM sys.dm_os_process_memory pm
+            CROSS JOIN sys.dm_os_sys_memory sm;";
+
+        try
+        {
+            using var command = new SqlCommand(query, _connection);
+            using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false) && !reader.IsDBNull(0))
+            {
+                return reader.GetDouble(0);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to read memory percent from DMVs. Returning 0.");
+        }
+
+        return 0;
+    }
+
+    private async Task<IReadOnlyList<ActiveRequest>> GetActiveRequestsDetailSafelyAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await GetActiveRequestsAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to read active requests detail. Returning empty list.");
+            return new List<ActiveRequest>();
+        }
     }
 
     public async Task<IReadOnlyList<JobHistoryEntry>> GetJobHistoryAsync(DateTime since, CancellationToken cancellationToken = default)

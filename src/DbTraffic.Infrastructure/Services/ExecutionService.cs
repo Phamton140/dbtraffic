@@ -2,6 +2,7 @@ using DbTraffic.Core.Entities;
 using DbTraffic.Core.Repositories;
 using DbTraffic.Core.Services;
 using DbTraffic.Infrastructure.SqlServer;
+using Microsoft.Extensions.Logging;
 
 namespace DbTraffic.Infrastructure.Services;
 
@@ -10,15 +11,18 @@ public sealed class ExecutionService : IExecutionService
     private readonly IExecutionRepository _executionRepository;
     private readonly IProcessRepository _processRepository;
     private readonly IInstanceRepository _instanceRepository;
+    private readonly ILogger<SqlServerInstanceClient> _instanceClientLogger;
 
     public ExecutionService(
         IExecutionRepository executionRepository,
         IProcessRepository processRepository,
-        IInstanceRepository instanceRepository)
+        IInstanceRepository instanceRepository,
+        ILogger<SqlServerInstanceClient> instanceClientLogger)
     {
         _executionRepository = executionRepository;
         _processRepository = processRepository;
         _instanceRepository = instanceRepository;
+        _instanceClientLogger = instanceClientLogger;
     }
 
     public Task<IReadOnlyList<Execution>> GetAllAsync(CancellationToken cancellationToken = default)
@@ -66,7 +70,7 @@ public sealed class ExecutionService : IExecutionService
             throw new InvalidOperationException($"Instance {instanceId} not found.");
         }
 
-        await using var client = new SqlServerInstanceClient(instance.ConnectionString);
+        await using var client = new SqlServerInstanceClient(instance.ConnectionString, _instanceClientLogger);
         var entries = await client.GetJobHistoryAsync(since, cancellationToken);
 
         var count = 0;

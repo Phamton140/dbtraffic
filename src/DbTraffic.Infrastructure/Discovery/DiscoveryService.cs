@@ -57,8 +57,7 @@ public sealed class DiscoveryService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Discovery failed for instance {InstanceName}.", instance.Name);
-            throw;
+            _logger.LogError(ex, "Discovery failed for instance {InstanceName}. Continuing with remaining instances.", instance.Name);
         }
     }
 

@@ -5,20 +5,24 @@ using DbTraffic.Infrastructure.Repositories;
 
 namespace DbTraffic.Infrastructure.Tests;
 
+[Collection("SqlServer collection")]
 public class DiscoveryRepositoryTests
 {
-    private static readonly string ConnectionString =
-        Environment.GetEnvironmentVariable("DBTRAFFIC_TEST_CONNECTION_STRING")
-        ?? "Server=.;Database=DbTraffic;Trusted_Connection=True;TrustServerCertificate=True;";
+    private readonly SqlServerTestFixture _fixture;
 
-    private static IDbConnectionFactory CreateFactory() => new SqlConnectionFactory(ConnectionString);
+    public DiscoveryRepositoryTests(SqlServerTestFixture fixture)
+    {
+        _fixture = fixture;
+    }
 
-    private static async Task<Guid> CreateTestInstanceAsync(InstanceRepository repository)
+    private IDbConnectionFactory CreateFactory() => _fixture.CreateConnectionFactory();
+
+    private async Task<Guid> CreateTestInstanceAsync(InstanceRepository repository)
     {
         var instance = new Instance
         {
             Name = $"Test Instance {Guid.NewGuid():N}",
-            ConnectionString = ConnectionString
+            ConnectionString = _fixture.ConnectionString
         };
         var created = await repository.CreateAsync(instance);
         return created.Id;
@@ -27,6 +31,11 @@ public class DiscoveryRepositoryTests
     [Fact]
     public async Task SaveAndGetJobs_Should_PersistAndReturnJobs()
     {
+        if (!_fixture.IsAvailable)
+        {
+            return;
+        }
+
         var instanceRepository = new InstanceRepository(CreateFactory());
         var repository = new DiscoveryRepository(CreateFactory());
         var instanceId = await CreateTestInstanceAsync(instanceRepository);
@@ -61,6 +70,11 @@ public class DiscoveryRepositoryTests
     [Fact]
     public async Task AssociateJob_Should_UpdateAssociatedProcessId()
     {
+        if (!_fixture.IsAvailable)
+        {
+            return;
+        }
+
         var instanceRepository = new InstanceRepository(CreateFactory());
         var processRepository = new ProcessRepository(CreateFactory());
         var repository = new DiscoveryRepository(CreateFactory());
@@ -95,6 +109,11 @@ public class DiscoveryRepositoryTests
     [Fact]
     public async Task SaveAndGetObjects_Should_PersistAndReturnObjects()
     {
+        if (!_fixture.IsAvailable)
+        {
+            return;
+        }
+
         var instanceRepository = new InstanceRepository(CreateFactory());
         var repository = new DiscoveryRepository(CreateFactory());
         var instanceId = await CreateTestInstanceAsync(instanceRepository);

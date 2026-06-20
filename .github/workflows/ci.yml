@@ -38,10 +38,17 @@ jobs:
       - name: Build solution
         run: dotnet build --no-restore --configuration Release
 
+      - name: Install Playwright CLI
+        run: dotnet tool install --global Microsoft.Playwright.CLI
+
+      - name: Install Playwright browsers
+        run: $HOME/.dotnet/tools/playwright install chromium
+
       - name: Run tests
         env:
           RUN_INTEGRATION_TESTS: true
-        timeout-minutes: 10
+          RUN_E2E_TESTS: true
+        timeout-minutes: 15
         run: dotnet test --no-build --configuration Release --verbosity normal
 
       - name: Check code formatting

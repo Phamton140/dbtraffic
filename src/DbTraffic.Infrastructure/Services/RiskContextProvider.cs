@@ -116,13 +116,13 @@ public sealed class RiskContextProvider : IRiskContextProvider
     {
         try
         {
-            var requests = await _instanceClient.GetActiveRequestsAsync(cancellationToken);
+            var metrics = await _instanceClient.GetInstanceMetricsAsync(cancellationToken).ConfigureAwait(false);
             return new InstanceResourceState
             {
-                CpuPercent = 0,
-                MemoryPercent = 0,
-                ActiveRequests = requests.Count,
-                BlockingSessions = 0
+                CpuPercent = metrics.CpuPercent,
+                MemoryPercent = metrics.MemoryPercent,
+                ActiveRequests = metrics.ActiveRequests,
+                BlockingSessions = metrics.BlockingSessions
             };
         }
         catch

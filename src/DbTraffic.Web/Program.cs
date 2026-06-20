@@ -106,3 +106,6 @@ app.MapMonitoringEndpoints();
 app.MapExecutionEndpoints();
 
 app.Run();
+
+public partial class Program { }
+

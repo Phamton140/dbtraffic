@@ -74,25 +74,25 @@
 
 | ID | Tarea | Prioridad | Estado | Fase |
 |----|-------|-----------|--------|------|
-| B-038 | Implementar worker de monitoreo de DMV | Alta | Pendiente | 5 |
-| B-039 | Crear dashboard de actividad actual | Alta | Pendiente | 5 |
-| B-040 | Implementar registro de ejecuciones manuales | Alta | Pendiente | 5 |
-| B-041 | Importar historial desde `msdb.dbo.sysjobhistory` | Media | Pendiente | 5 |
-| B-042 | Calibrar duraciones estimadas con historial | Media | Pendiente | 5 |
-| B-043 | Pantalla de historial de ejecuciones | Media | Pendiente | 5 |
-| B-044 | Tests de integración del monitoreo | Alta | Pendiente | 5 |
+| B-038 | Implementar worker de monitoreo de DMV | Alta | Completado | 5 |
+| B-039 | Crear dashboard de actividad actual | Alta | Completado | 5 |
+| B-040 | Implementar registro de ejecuciones manuales | Alta | Completado | 5 |
+| B-041 | Importar historial desde `msdb.dbo.sysjobhistory` | Media | Completado | 5 |
+| B-042 | Calibrar duraciones estimadas con historial | Media | Completado | 5 |
+| B-043 | Pantalla de historial de ejecuciones | Media | Completado | 5 |
+| B-044 | Tests de integración del monitoreo | Alta | Completado | 5 |
 
 ## Fase 6: Cierre del MVP
 
 | ID | Tarea | Prioridad | Estado | Fase |
 |----|-------|-----------|--------|------|
-| B-045 | Revisión de arquitectura y deuda técnica | Alta | Pendiente | 6 |
-| B-046 | Documentación de usuario | Alta | Pendiente | 6 |
-| B-047 | Documentación de operación | Alta | Pendiente | 6 |
-| B-048 | Pruebas end-to-end con Playwright | Media | Pendiente | 6 |
+| B-045 | Revisión de arquitectura y deuda técnica | Alta | Completado | 6 |
+| B-046 | Documentación de usuario | Alta | Completado | 6 |
+| B-047 | Documentación de operación | Alta | Completado | 6 |
+| B-048 | Pruebas end-to-end con Playwright | Media | Completado | 6 |
 | B-049 | Pruebas de carga de la API | Baja | Pendiente | 6 |
 | B-050 | Preparar demo interno | Alta | Pendiente | 6 |
-| B-051 | Release 0.1.0 | Alta | Pendiente | 6 |
+| B-051 | Release 0.1.0 | Alta | En progreso | 6 |
 
 ## Backlog futuro (post-MVP)
 

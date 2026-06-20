@@ -7,6 +7,8 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-06-20
+
 ### Added
 - Estructura inicial del repositorio.
 - Solución .NET 8 con proyectos Core, Infrastructure, Shared, Web y tests.
@@ -56,7 +58,15 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - Endpoints `/api/monitoring` y `/api/executions`.
 - Páginas Blazor `/monitoring` y `/history`.
 - Tests unitarios e integración para ejecuciones y snapshots.
+- Proyecto de pruebas end-to-end `DbTraffic.E2ETests` con Playwright.
+- `DbTrafficWebApplicationFactory` para levantar la aplicación con Kestrel real y SQL Server en Testcontainers durante los tests E2E.
+- Tests E2E de navegación básica: carga de home page y navegación a instancias.
 
-## [0.1.0] - Por definir
+### Changed
+- Pipeline CI actualizada para instalar navegadores de Playwright y ejecutar tests E2E (`RUN_E2E_TESTS=true`).
+- Backlog actualizado con Fase 5 completada.
 
-- Lanzamiento del MVP.
+### Fixed
+- Aplicación de `database/schema.sql` dividida en batches por `GO` para compatibilidad con Dapper en tests de integración.
+- Estrategia de espera de Testcontainers basada en puerto TCP 1433 para estabilidad en GitHub Actions.
+- `RiskContextProvider` ahora utiliza métricas reales de la instancia (`GetInstanceMetricsAsync`) en lugar de construir `InstanceResourceState` con valores fijos en cero. Esto activa correctamente `InstanceResourcePressureRule` para bloqueos y, cuando las DMVs lo permiten, CPU y memoria.

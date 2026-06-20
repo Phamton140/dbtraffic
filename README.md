@@ -10,9 +10,9 @@ DbTraffic actúa como un **controlador de tráfico para cargas de trabajo de bas
 
 ## Estado del proyecto
 
-- **Fase actual**: Fase 0 - Fundamentos.
-- **Versión**: 0.1.0 (en desarrollo).
-- **Estado del repositorio**: estable, estructura inicial lista.
+- **Fase actual**: Fase 6 - Cierre del MVP.
+- **Versión**: 0.1.0.
+- **Estado del repositorio**: estable, listo para release.
 
 Consulta la documentación en `/docs` para más detalles.
 
@@ -39,7 +39,8 @@ Consulta la documentación en `/docs` para más detalles.
 └── tests/           # Pruebas automatizadas
     ├── DbTraffic.Core.Tests/
     ├── DbTraffic.Infrastructure.Tests/
-    └── DbTraffic.Web.Tests/
+    ├── DbTraffic.Web.Tests/
+    └── DbTraffic.E2ETests/
 ```
 
 ## Configuración del entorno de desarrollo
@@ -54,7 +55,7 @@ Consulta la documentación en `/docs` para más detalles.
 
 1. Clonar el repositorio:
    ```bash
-   git clone https://github.com/tu-organizacion/dbtraffic.git
+   git clone https://github.com/Phamton140/dbtraffic.git
    cd dbtraffic
    ```
 
@@ -78,6 +79,9 @@ Consulta la documentación en `/docs` para más detalles.
 ## Documentación relevante
 
 - [Guía de instalación local](docs/SETUP.md)
+- [Guía de usuario](docs/USER_GUIDE.md)
+- [Guía de operaciones](docs/OPERATIONS_GUIDE.md)
+- [Notas de release](docs/RELEASE_NOTES.md)
 - [Arquitectura](docs/ARCHITECTURE.md)
 - [Alcance del MVP](docs/MVP-SCOPE.md)
 - [Backlog](docs/BACKLOG.md)

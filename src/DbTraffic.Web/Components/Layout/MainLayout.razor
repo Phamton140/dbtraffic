@@ -1,23 +1,113 @@
 ﻿@inherits LayoutComponentBase
+@inject ISqlServerInstanceClient SqlClient
+@implements IAsyncDisposable
 
-<div class="page">
-    <div class="sidebar">
+<MudThemeProvider Theme="DbTrafficTheme" />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="1" Style="background-color: #1565C0;">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" aria-label="Toggle navigation" />
+        <MudText Typo="Typo.h6" Class="ml-3">DbTraffic</MudText>
+        <MudSpacer />
+        <MudChip T="string" Variant="Variant.Outlined" Color="SqlColor" Icon="@SqlIcon" title="Estado de conexión SQL Server">@SqlStatus</MudChip>
+        <MudText Typo="Typo.caption" Class="ml-4 d-none d-md-block">@CurrentTime</MudText>
+        <MudText Typo="Typo.caption" Class="ml-4 mr-2">v1.0.0</MudText>
+    </MudAppBar>
+    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2" Style="background-color: #FFFFFF;">
         <NavMenu />
-    </div>
-
-    <main>
-        <div class="top-row px-4">
-            <span class="navbar-brand">DbTraffic</span>
-        </div>
-
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+    </MudDrawer>
+    <MudMainContent Class="mud-height-full" Style="background-color: #F5F7FA; min-height: 100vh;">
+        @Body
+    </MudMainContent>
+</MudLayout>
 
 <div id="blazor-error-ui">
     An unhandled error has occurred.
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
+
+@code {
+    private bool _drawerOpen = true;
+    private string SqlStatus { get; set; } = "SQL: ...";
+    private string SqlIcon { get; set; } = Icons.Material.Filled.CloudQueue;
+    private Color SqlColor { get; set; } = Color.Default;
+    private string CurrentTime { get; set; } = DateTime.Now.ToString("g");
+    private Timer? _timer;
+
+    private static readonly MudTheme DbTrafficTheme = new()
+    {
+        PaletteLight = new PaletteLight()
+        {
+            Primary = "#1565C0",
+            Secondary = "#1976D2",
+            Success = "#2E7D32",
+            Warning = "#ED6C02",
+            Error = "#D32F2F",
+            Background = "#F5F7FA",
+            Surface = "#FFFFFF",
+            AppbarBackground = "#1565C0",
+            DrawerBackground = "#FFFFFF"
+        },
+        LayoutProperties = new LayoutProperties()
+        {
+            AppbarHeight = "64px"
+        }
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshSqlStatusAsync();
+        _timer = new Timer(async _ =>
+        {
+            await InvokeAsync(async () =>
+            {
+                CurrentTime = DateTime.Now.ToString("g");
+                await RefreshSqlStatusAsync();
+                StateHasChanged();
+            });
+        }, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
+    }
+
+    private async Task RefreshSqlStatusAsync()
+    {
+        try
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+            var healthy = await SqlClient.CanConnectAsync(cts.Token);
+            if (healthy)
+            {
+                SqlStatus = "SQL: OK";
+                SqlIcon = Icons.Material.Filled.CloudDone;
+                SqlColor = Color.Success;
+            }
+            else
+            {
+                SqlStatus = "SQL: Offline";
+                SqlIcon = Icons.Material.Filled.CloudOff;
+                SqlColor = Color.Error;
+            }
+        }
+        catch
+        {
+            SqlStatus = "SQL: Unknown";
+            SqlIcon = Icons.Material.Filled.CloudOff;
+            SqlColor = Color.Warning;
+        }
+    }
+
+    private void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_timer is not null)
+        {
+            await _timer.DisposeAsync();
+        }
+    }
+}

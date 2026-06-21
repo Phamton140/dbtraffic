@@ -90,9 +90,27 @@
 | B-046 | Documentación de usuario | Alta | Completado | 6 |
 | B-047 | Documentación de operación | Alta | Completado | 6 |
 | B-048 | Pruebas end-to-end con Playwright | Media | Completado | 6 |
-| B-049 | Pruebas de carga de la API | Baja | Pendiente | 6 |
-| B-050 | Preparar demo interno | Alta | Pendiente | 6 |
-| B-051 | Release 0.1.0 | Alta | En progreso | 6 |
+| B-049 | Pruebas de carga de la API | Baja | Completado | 6 |
+| B-050 | Preparar demo interno | Alta | Completado | 6 |
+| B-051 | Release 0.1.0 | Alta | Completado | 6 |
+
+## Fase 7: Modernización UI/UX con MudBlazor
+
+| ID | Tarea | Prioridad | Estado | Fase |
+|----|-------|-----------|--------|------|
+| F7-001 | Instalar y configurar MudBlazor (paquete, providers, fuentes) | Alta | Completado | 7 |
+| F7-002 | Crear tema corporativo y layout profesional (sidebar + topbar) | Alta | Completado | 7 |
+| F7-003 | Rediseñar dashboard de bienvenida | Media | Completado | 7 |
+| F7-004 | Rediseñar gestión de instancias | Alta | Completado | 7 |
+| F7-005 | Rediseñar gestión de procesos | Alta | Completado | 7 |
+| F7-006 | Rediseñar pantalla de descubrimiento | Media | Completado | 7 |
+| F7-007 | Convertir `/risk` en pantalla principal con gauge/score grande | Alta | Completado | 7 |
+| F7-008 | Rediseñar recomendaciones de ventanas de ejecución | Alta | Completado | 7 |
+| F7-009 | Rediseñar monitoreo en tiempo real | Media | Completado | 7 |
+| F7-010 | Rediseñar historial de ejecuciones | Media | Completado | 7 |
+| F7-011 | Ajustes responsive y accesibilidad (contrastes, tooltips, teclado) | Alta | Completado | 7 |
+| F7-012 | Validar visualmente con tests E2E y pruebas de carga | Media | Completado | 7 |
+| F7-013 | Release 1.0.0 (tag importante de cierre de Q1) | Alta | En progreso | 7 |
 
 ## Backlog futuro (post-MVP)
 

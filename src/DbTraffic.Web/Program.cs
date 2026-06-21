@@ -10,12 +10,25 @@ using DbTraffic.Infrastructure.SqlServer;
 using DbTraffic.Shared.Models;
 using DbTraffic.Web.Components;
 using DbTraffic.Web.Endpoints;
+using MudBlazor;
+using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddMudServices(config =>
+{
+    config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomRight;
+    config.SnackbarConfiguration.PreventDuplicates = false;
+    config.SnackbarConfiguration.NewestOnTop = true;
+    config.SnackbarConfiguration.ShowCloseIcon = true;
+    config.SnackbarConfiguration.VisibleStateDuration = 5000;
+    config.SnackbarConfiguration.HideTransitionDuration = 500;
+    config.SnackbarConfiguration.ShowTransitionDuration = 500;
+});
 
 builder.Services.AddHttpClient();
 
@@ -78,6 +91,9 @@ app.UseAntiforgery();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+// Lightweight health check endpoint for load testing and general uptime
+app.MapGet("/api/health", () => Results.Ok(new { Status = "Healthy", Version = "1.0.0" }));
 
 // Health check endpoint for SQL Server connectivity (MVP phase 0)
 app.MapGet("/api/health/sql", async (ISqlServerInstanceClient client, CancellationToken cancellationToken) =>

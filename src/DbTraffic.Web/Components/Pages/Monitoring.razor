@@ -3,108 +3,117 @@
 @using DbTraffic.Shared.Models.Dmv
 @inject IHttpClientFactory HttpClientFactory
 @inject NavigationManager Navigation
+@inject ISnackbar Snackbar
 
 <PageTitle>Monitoreo - DbTraffic</PageTitle>
 
-<h1>Monitoreo de instancias</h1>
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6">
+    <MudText Typo="Typo.h4" Class="mb-4">Monitoreo de instancias</MudText>
 
-@if (_instances == null)
-{
-    <p><em>Cargando instancias...</em></p>
-}
-else
-{
-    <div class="row mb-3">
-        <div class="col-md-4">
-            <label class="form-label">Instancia</label>
-            <select class="form-select" @bind="_selectedInstanceId" @bind:after="OnInstanceChangedAsync">
-                <option value="">Seleccione...</option>
-                @foreach (var instance in _instances)
-                {
-                    <option value="@instance.Id">@instance.Name</option>
-                }
-            </select>
-        </div>
-        <div class="col-md-8 d-flex align-items-end">
-            <button class="btn btn-primary me-2" @onclick="RefreshMetricsAsync" disabled="@(_selectedInstanceId == Guid.Empty)">Actualizar</button>
-            <button class="btn btn-secondary" @onclick="CaptureSnapshotAsync" disabled="@(_selectedInstanceId == Guid.Empty)">Capturar snapshot</button>
-        </div>
-    </div>
-
-    @if (_metrics != null)
+    @if (_instances == null)
     {
-        <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <h5 class="card-title">CPU</h5>
-                        <p class="card-text display-6">@_metrics.CpuPercent.ToString("F1")%</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <h5 class="card-title">Memoria</h5>
-                        <p class="card-text display-6">@_metrics.MemoryPercent.ToString("F1")%</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <h5 class="card-title">Requests activos</h5>
-                        <p class="card-text display-6">@_metrics.ActiveRequests</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <h5 class="card-title">Bloqueos</h5>
-                        <p class="card-text display-6">@_metrics.BlockingSessions</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+    }
+    else
+    {
+        <MudCard Elevation="2" Class="mb-4">
+            <MudCardContent>
+                <MudGrid>
+                    <MudItem xs="12" md="6">
+                        <MudSelect @bind-Value="_selectedInstanceId" Label="Instancia" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true">
+                            <MudSelectItem Value="Guid.Empty">Seleccione...</MudSelectItem>
+                            @foreach (var instance in _instances)
+                            {
+                                <MudSelectItem Value="instance.Id">@instance.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" md="6" Class="d-flex align-center">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="RefreshMetricsAsync" Disabled="@(_selectedInstanceId == Guid.Empty)" StartIcon="@Icons.Material.Filled.Refresh">Actualizar</MudButton>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="CaptureSnapshotAsync" Disabled="@(_selectedInstanceId == Guid.Empty)" Class="ml-2" StartIcon="@Icons.Material.Filled.Camera">Capturar snapshot</MudButton>
+                    </MudItem>
+                </MudGrid>
+            </MudCardContent>
+        </MudCard>
 
-        <h3>Requests activos</h3>
-        @if (_metrics.ActiveRequestsDetail.Count == 0)
+        @if (_metrics != null)
         {
-            <p>No hay requests activos.</p>
-        }
-        else
-        {
-            <table class="table table-striped table-sm">
-                <thead>
-                    <tr>
-                        <th>Session</th>
-                        <th>Status</th>
-                        <th>Command</th>
-                        <th>Database</th>
-                        <th>Login</th>
-                        <th>Program</th>
-                        <th>Start</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var request in _metrics.ActiveRequestsDetail)
+            <MudGrid Class="mb-4">
+                <MudItem xs="12" sm="6" md="3">
+                    <MudCard Elevation="2" Style="height: 100%;">
+                        <MudCardContent Class="d-flex flex-column align-center">
+                            <MudText Typo="Typo.subtitle2">CPU</MudText>
+                            <MudText Typo="Typo.h4" Color="Color.Primary">@_metrics.CpuPercent.ToString("F1")%</MudText>
+                            <MudProgressLinear Value="@GetClampedValue(_metrics.CpuPercent)" Max="100" Color="Color.Primary" Class="mt-2" />
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudCard Elevation="2" Style="height: 100%;">
+                        <MudCardContent Class="d-flex flex-column align-center">
+                            <MudText Typo="Typo.subtitle2">Memoria</MudText>
+                            <MudText Typo="Typo.h4" Color="Color.Secondary">@_metrics.MemoryPercent.ToString("F1")%</MudText>
+                            <MudProgressLinear Value="@GetClampedValue(_metrics.MemoryPercent)" Max="100" Color="Color.Secondary" Class="mt-2" />
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudCard Elevation="2" Style="height: 100%;">
+                        <MudCardContent Class="d-flex flex-column align-center">
+                            <MudText Typo="Typo.subtitle2">Requests activos</MudText>
+                            <MudText Typo="Typo.h4" Color="Color.Success">@_metrics.ActiveRequests</MudText>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudCard Elevation="2" Style="height: 100%;">
+                        <MudCardContent Class="d-flex flex-column align-center">
+                            <MudText Typo="Typo.subtitle2">Bloqueos</MudText>
+                            <MudText Typo="Typo.h4" Color="Color.Error">@_metrics.BlockingSessions</MudText>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            </MudGrid>
+
+            <MudCard Elevation="2">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">Requests activos</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    @if (_metrics.ActiveRequestsDetail.Count == 0)
                     {
-                        <tr>
-                            <td>@request.SessionId</td>
-                            <td>@request.Status</td>
-                            <td>@request.Command</td>
-                            <td>@request.DatabaseName</td>
-                            <td>@request.LoginName</td>
-                            <td>@request.ProgramName</td>
-                            <td>@request.StartTime?.ToString("g")</td>
-                        </tr>
+                        <MudText Typo="Typo.body2">No hay requests activos.</MudText>
                     }
-                </tbody>
-            </table>
+                    else
+                    {
+                        <MudTable Items="_metrics.ActiveRequestsDetail" Hover="true" Striped="true" Bordered="true" Breakpoint="Breakpoint.Sm" Dense="true">
+                            <HeaderContent>
+                                <MudTh>Session</MudTh>
+                                <MudTh>Status</MudTh>
+                                <MudTh>Command</MudTh>
+                                <MudTh>Database</MudTh>
+                                <MudTh>Login</MudTh>
+                                <MudTh>Program</MudTh>
+                                <MudTh>Start</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="Session">@context.SessionId</MudTd>
+                                <MudTd DataLabel="Status">@context.Status</MudTd>
+                                <MudTd DataLabel="Command">@context.Command</MudTd>
+                                <MudTd DataLabel="Database">@context.DatabaseName</MudTd>
+                                <MudTd DataLabel="Login">@context.LoginName</MudTd>
+                                <MudTd DataLabel="Program">@context.ProgramName</MudTd>
+                                <MudTd DataLabel="Start">@context.StartTime?.ToString("g")</MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    }
+                </MudCardContent>
+            </MudCard>
         }
     }
-}
+</MudContainer>
 
 @code {
     private List<Instance>? _instances;
@@ -115,11 +124,6 @@ else
     {
         var client = CreateClient();
         _instances = await client.GetFromJsonAsync<List<Instance>>("api/instances");
-    }
-
-    private async Task OnInstanceChangedAsync()
-    {
-        await RefreshMetricsAsync();
     }
 
     private async Task RefreshMetricsAsync()
@@ -139,8 +143,23 @@ else
         if (_selectedInstanceId == Guid.Empty) return;
 
         var client = CreateClient();
-        await client.PostAsync($"api/monitoring/instances/{_selectedInstanceId}/snapshot", null);
-        await RefreshMetricsAsync();
+        var response = await client.PostAsync($"api/monitoring/instances/{_selectedInstanceId}/snapshot", null);
+        if (response.IsSuccessStatusCode)
+        {
+            await RefreshMetricsAsync();
+            Snackbar.Add("Snapshot capturado", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("Error al capturar snapshot", Severity.Error);
+        }
+    }
+
+    private static int GetClampedValue(double value)
+    {
+        if (value < 0) return 0;
+        if (value > 100) return 100;
+        return (int)value;
     }
 
     private HttpClient CreateClient()

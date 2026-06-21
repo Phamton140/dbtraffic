@@ -2,76 +2,71 @@
 @using DbTraffic.Core.Entities
 @inject IHttpClientFactory HttpClientFactory
 @inject NavigationManager Navigation
+@inject ISnackbar Snackbar
 
 <PageTitle>Instancias - DbTraffic</PageTitle>
 
-<h1>Instancias SQL Server</h1>
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6">
+    <MudText Typo="Typo.h4" Class="mb-4">Instancias SQL Server</MudText>
 
-@if (_instances == null)
-{
-    <p><em>Cargando...</em></p>
-}
-else
-{
-    <div class="row">
-        <div class="col-md-8">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Nombre</th>
-                        <th>Descripción</th>
-                        <th>Estado</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var instance in _instances)
-                    {
-                        <tr>
-                            <td>@instance.Name</td>
-                            <td>@instance.Description</td>
-                            <td>
-                                @if (instance.IsActive)
-                                {
-                                    <span class="badge bg-success">Activa</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-secondary">Inactiva</span>
-                                }
-                            </td>
-                            <td>
-                                <button class="btn btn-sm btn-danger" @onclick="() => DeleteInstance(instance.Id)">Eliminar</button>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
-                    Nueva instancia
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label">Nombre</label>
-                        <input class="form-control" @bind="_newInstance.Name" />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Cadena de conexión</label>
-                        <input class="form-control" @bind="_newInstance.ConnectionString" />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Descripción</label>
-                        <textarea class="form-control" @bind="_newInstance.Description"></textarea>
-                    </div>
-                    <button class="btn btn-primary" @onclick="CreateInstance">Crear</button>
-                </div>
-            </div>
-        </div>
-    </div>
-}
+    @if (_instances == null)
+    {
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+    }
+    else
+    {
+        <MudGrid>
+            <MudItem xs="12" lg="8">
+                <MudTable Items="_instances" Hover="true" Striped="true" Bordered="true" Elevation="2" Breakpoint="Breakpoint.Sm">
+                    <HeaderContent>
+                        <MudTh>Nombre</MudTh>
+                        <MudTh>Descripción</MudTh>
+                        <MudTh>Estado</MudTh>
+                        <MudTh Style="text-align: right;">Acciones</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Nombre">@context.Name</MudTd>
+                        <MudTd DataLabel="Descripción">@context.Description</MudTd>
+                        <MudTd DataLabel="Estado">
+                            @if (context.IsActive)
+                            {
+                                <MudChip T="string" Size="Size.Small" Color="Color.Success">Activa</MudChip>
+                            }
+                            else
+                            {
+                                <MudChip T="string" Size="Size.Small" Color="Color.Default">Inactiva</MudChip>
+                            }
+                        </MudTd>
+                        <MudTd Style="text-align: right;">
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="() => DeleteInstance(context.Id)" aria-label="Eliminar instancia" />
+                        </MudTd>
+                    </RowTemplate>
+                    <NoRecordsContent>
+                        <MudText Typo="Typo.body2">No hay instancias registradas.</MudText>
+                    </NoRecordsContent>
+                </MudTable>
+            </MudItem>
+
+            <MudItem xs="12" lg="4">
+                <MudCard Elevation="2">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">Nueva instancia</MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudTextField @bind-Value="_newInstance.Name" Label="Nombre" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
+                        <MudTextField @bind-Value="_newInstance.ConnectionString" Label="Cadena de conexión" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" Class="mt-3" />
+                        <MudTextField @bind-Value="_newInstance.Description" Label="Descripción" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="3" Class="mt-3" />
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CreateInstance">Crear</MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+    }
+</MudContainer>
 
 @code {
     private List<Instance>? _instances;
@@ -96,6 +91,11 @@ else
         {
             _newInstance = new Instance();
             await LoadInstancesAsync();
+            Snackbar.Add("Instancia creada", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add($"Error al crear instancia: {response.StatusCode}", Severity.Error);
         }
     }
 
@@ -106,6 +106,11 @@ else
         if (response.IsSuccessStatusCode)
         {
             await LoadInstancesAsync();
+            Snackbar.Add("Instancia eliminada", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add($"Error al eliminar instancia: {response.StatusCode}", Severity.Error);
         }
     }
 

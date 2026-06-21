@@ -2,144 +2,144 @@
 @using DbTraffic.Core.Entities
 @inject IHttpClientFactory HttpClientFactory
 @inject NavigationManager Navigation
+@inject ISnackbar Snackbar
 
 <PageTitle>Historial - DbTraffic</PageTitle>
 
-<h1>Historial de ejecuciones</h1>
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6">
+    <MudText Typo="Typo.h4" Class="mb-4">Historial de ejecuciones</MudText>
 
-@if (_executions == null || _instances == null || _processes == null)
-{
-    <p><em>Cargando...</em></p>
-}
-else
-{
-    <div class="row">
-        <div class="col-md-8">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h3>Ejecuciones</h3>
-                <div>
-                    <select class="form-select form-select-sm d-inline-block w-auto me-2" @bind="_selectedInstanceId" @bind:after="LoadExecutionsAsync">
-                        <option value="">Todas las instancias</option>
-                        @foreach (var instance in _instances)
-                        {
-                            <option value="@instance.Id">@instance.Name</option>
-                        }
-                    </select>
-                </div>
-            </div>
+    @if (_executions == null || _instances == null || _processes == null)
+    {
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+    }
+    else
+    {
+        <MudGrid>
+            <MudItem xs="12" lg="8">
+                <MudCard Elevation="2">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">Ejecuciones</MudText>
+                        </CardHeaderContent>
+                        <CardHeaderActions>
+                            <MudSelect T="Guid" Value="_selectedInstanceId" ValueChanged="OnInstanceFilterChanged" Label="Instancia" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true" Style="width: 220px;">
+                                <MudSelectItem T="Guid" Value="Guid.Empty">Todas las instancias</MudSelectItem>
+                                @foreach (var instance in _instances)
+                                {
+                                    <MudSelectItem T="Guid" Value="instance.Id">@instance.Name</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </CardHeaderActions>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudTable Items="_executions" Hover="true" Striped="true" Bordered="true" Breakpoint="Breakpoint.Sm" Dense="true">
+                            <HeaderContent>
+                                <MudTh>Inicio</MudTh>
+                                <MudTh>Instancia</MudTh>
+                                <MudTh>Proceso</MudTh>
+                                <MudTh>Origen</MudTh>
+                                <MudTh>Duración</MudTh>
+                                <MudTh>Estado</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="Inicio">@context.StartedAt.ToString("g")</MudTd>
+                                <MudTd DataLabel="Instancia">@GetInstanceName(context.InstanceId)</MudTd>
+                                <MudTd DataLabel="Proceso">@GetProcessName(context.ProcessId)</MudTd>
+                                <MudTd DataLabel="Origen">@context.Source</MudTd>
+                                <MudTd DataLabel="Duración">@(context.DurationMinutes.HasValue ? $"{context.DurationMinutes} min" : "-")</MudTd>
+                                <MudTd DataLabel="Estado"><MudChip T="string" Size="Size.Small" Color="GetStatusColor(context.Status)">@context.Status</MudChip></MudTd>
+                            </RowTemplate>
+                            <NoRecordsContent>
+                                <MudText Typo="Typo.body2">No hay ejecuciones registradas.</MudText>
+                            </NoRecordsContent>
+                        </MudTable>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
 
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Inicio</th>
-                        <th>Instancia</th>
-                        <th>Proceso</th>
-                        <th>Origen</th>
-                        <th>Duración</th>
-                        <th>Estado</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var execution in _executions)
-                    {
-                        <tr>
-                            <td>@execution.StartedAt.ToString("g")</td>
-                            <td>@GetInstanceName(execution.InstanceId)</td>
-                            <td>@GetProcessName(execution.ProcessId)</td>
-                            <td>@execution.Source</td>
-                            <td>@(execution.DurationMinutes.HasValue ? $"{execution.DurationMinutes} min" : "-")</td>
-                            <td><span class="badge @GetStatusBadgeClass(execution.Status)">@execution.Status</span></td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card mb-3">
-                <div class="card-header">Registrar ejecución manual</div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label">Instancia</label>
-                        <select class="form-select" @bind="_newExecution.InstanceId">
-                            <option value="">Seleccione...</option>
+            <MudItem xs="12" lg="4">
+                <MudCard Elevation="2" Class="mb-4">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">Registrar ejecución manual</MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudSelect @bind-Value="_newExecution.InstanceId" Label="Instancia" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true" Required="true">
+                            <MudSelectItem Value="Guid.Empty">Seleccione...</MudSelectItem>
                             @foreach (var instance in _instances)
                             {
-                                <option value="@instance.Id">@instance.Name</option>
+                                <MudSelectItem Value="instance.Id">@instance.Name</MudSelectItem>
                             }
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Proceso</label>
-                        <select class="form-select" @bind="_newExecution.ProcessId">
-                            <option value="">Ninguno</option>
+                        </MudSelect>
+                        <MudSelect @bind-Value="_newExecution.ProcessId" Label="Proceso" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true" Class="mt-3">
+                            <MudSelectItem Value="(Guid?)null">Ninguno</MudSelectItem>
                             @foreach (var process in _processes)
                             {
-                                <option value="@process.Id">@process.Name</option>
+                                <MudSelectItem Value="(Guid?)process.Id">@process.Name</MudSelectItem>
                             }
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Inicio</label>
-                        <input type="datetime-local" class="form-control" @bind="_newExecution.StartedAt" />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Fin</label>
-                        <input type="datetime-local" class="form-control" @bind="_newExecution.CompletedAt" />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Estado</label>
-                        <select class="form-select" @bind="_newExecution.Status">
-                            <option value="Completed">Completado</option>
-                            <option value="Failed">Fallido</option>
-                            <option value="Cancelled">Cancelado</option>
-                            <option value="Running">En ejecución</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Notas</label>
-                        <textarea class="form-control" @bind="_newExecution.Notes"></textarea>
-                    </div>
-                    <button class="btn btn-primary" @onclick="CreateExecutionAsync">Registrar</button>
-                </div>
-            </div>
+                        </MudSelect>
+                        <MudDatePicker @bind-Date="_newExecutionStartedDate" Label="Fecha de inicio" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mt-3" />
+                        <MudTimePicker @bind-Time="_newExecutionStartedTime" Label="Hora de inicio" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mt-3" />
+                        <MudDatePicker @bind-Date="_newExecutionCompletedDate" Label="Fecha de fin" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mt-3" />
+                        <MudTimePicker @bind-Time="_newExecutionCompletedTime" Label="Hora de fin" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mt-3" />
+                        <MudSelect @bind-Value="_newExecution.Status" Label="Estado" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true" Class="mt-3">
+                            <MudSelectItem Value="@("Completed")">Completado</MudSelectItem>
+                            <MudSelectItem Value="@("Failed")">Fallido</MudSelectItem>
+                            <MudSelectItem Value="@("Cancelled")">Cancelado</MudSelectItem>
+                            <MudSelectItem Value="@("Running")">En ejecución</MudSelectItem>
+                        </MudSelect>
+                        <MudTextField @bind-Value="_newExecution.Notes" Label="Notas" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="2" Class="mt-3" />
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CreateExecutionAsync">Registrar</MudButton>
+                    </MudCardActions>
+                </MudCard>
 
-            <div class="card mb-3">
-                <div class="card-header">Importar desde SQL Agent</div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label">Instancia</label>
-                        <select class="form-select" @bind="_importInstanceId">
-                            <option value="">Seleccione...</option>
+                <MudCard Elevation="2" Class="mb-4">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">Importar desde SQL Agent</MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudSelect @bind-Value="_importInstanceId" Label="Instancia" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true">
+                            <MudSelectItem Value="Guid.Empty">Seleccione...</MudSelectItem>
                             @foreach (var instance in _instances)
                             {
-                                <option value="@instance.Id">@instance.Name</option>
+                                <MudSelectItem Value="instance.Id">@instance.Name</MudSelectItem>
                             }
-                        </select>
-                    </div>
-                    <button class="btn btn-secondary" @onclick="ImportHistoryAsync" disabled="@(_importInstanceId == Guid.Empty)">Importar últimos 30 días</button>
-                </div>
-            </div>
+                        </MudSelect>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="ImportHistoryAsync" Disabled="@(_importInstanceId == Guid.Empty)">Importar últimos 30 días</MudButton>
+                    </MudCardActions>
+                </MudCard>
 
-            <div class="card">
-                <div class="card-header">Calibrar duración</div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label">Proceso</label>
-                        <select class="form-select" @bind="_calibrateProcessId">
-                            <option value="">Seleccione...</option>
+                <MudCard Elevation="2">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">Calibrar duración</MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudSelect @bind-Value="_calibrateProcessId" Label="Proceso" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true">
+                            <MudSelectItem Value="Guid.Empty">Seleccione...</MudSelectItem>
                             @foreach (var process in _processes)
                             {
-                                <option value="@process.Id">@process.Name</option>
+                                <MudSelectItem Value="process.Id">@process.Name</MudSelectItem>
                             }
-                        </select>
-                    </div>
-                    <button class="btn btn-secondary" @onclick="CalibrateAsync" disabled="@(_calibrateProcessId == Guid.Empty)">Calibrar duración estimada</button>
-                </div>
-            </div>
-        </div>
-    </div>
-}
+                        </MudSelect>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Tertiary" OnClick="CalibrateAsync" Disabled="@(_calibrateProcessId == Guid.Empty)">Calibrar duración estimada</MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+    }
+</MudContainer>
 
 @code {
     private List<Execution>? _executions;
@@ -149,12 +149,22 @@ else
     private Guid _importInstanceId;
     private Guid _calibrateProcessId;
     private Execution _newExecution = new();
+    private DateTime? _newExecutionStartedDate;
+    private TimeSpan? _newExecutionStartedTime;
+    private DateTime? _newExecutionCompletedDate;
+    private TimeSpan? _newExecutionCompletedTime;
 
     protected override async Task OnInitializedAsync()
     {
         var client = CreateClient();
         _instances = await client.GetFromJsonAsync<List<Instance>>("api/instances");
         _processes = await client.GetFromJsonAsync<List<Process>>("api/processes");
+        await LoadExecutionsAsync();
+    }
+
+    private async Task OnInstanceFilterChanged(Guid instanceId)
+    {
+        _selectedInstanceId = instanceId;
         await LoadExecutionsAsync();
     }
 
@@ -172,6 +182,9 @@ else
     {
         if (_newExecution.InstanceId == Guid.Empty) return;
 
+        _newExecution.StartedAt = CombineDateTime(_newExecutionStartedDate, _newExecutionStartedTime) ?? DateTime.Now;
+        _newExecution.CompletedAt = CombineDateTime(_newExecutionCompletedDate, _newExecutionCompletedTime);
+
         _newExecution.Source = "Manual";
         if (_newExecution.CompletedAt.HasValue && _newExecution.StartedAt != default)
         {
@@ -183,7 +196,16 @@ else
         if (response.IsSuccessStatusCode)
         {
             _newExecution = new Execution();
+            _newExecutionStartedDate = null;
+            _newExecutionStartedTime = null;
+            _newExecutionCompletedDate = null;
+            _newExecutionCompletedTime = null;
             await LoadExecutionsAsync();
+            Snackbar.Add("Ejecución registrada", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("Error al registrar ejecución", Severity.Error);
         }
     }
 
@@ -192,8 +214,16 @@ else
         if (_importInstanceId == Guid.Empty) return;
 
         var client = CreateClient();
-        await client.PostAsync($"api/executions/import/{_importInstanceId}", null);
-        await LoadExecutionsAsync();
+        var response = await client.PostAsync($"api/executions/import/{_importInstanceId}", null);
+        if (response.IsSuccessStatusCode)
+        {
+            await LoadExecutionsAsync();
+            Snackbar.Add("Historial importado", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("Error al importar historial", Severity.Error);
+        }
     }
 
     private async Task CalibrateAsync()
@@ -201,7 +231,21 @@ else
         if (_calibrateProcessId == Guid.Empty) return;
 
         var client = CreateClient();
-        await client.PostAsync($"api/executions/processes/{_calibrateProcessId}/calibrate", null);
+        var response = await client.PostAsync($"api/executions/processes/{_calibrateProcessId}/calibrate", null);
+        if (response.IsSuccessStatusCode)
+        {
+            Snackbar.Add("Duración calibrada", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("Error al calibrar duración", Severity.Error);
+        }
+    }
+
+    private DateTime? CombineDateTime(DateTime? date, TimeSpan? time)
+    {
+        if (!date.HasValue) return null;
+        return date.Value.Date + (time ?? TimeSpan.Zero);
     }
 
     private string GetInstanceName(Guid instanceId)
@@ -216,13 +260,13 @@ else
             : "-";
     }
 
-    private static string GetStatusBadgeClass(string status) => status switch
+    private static Color GetStatusColor(string status) => status switch
     {
-        "Completed" => "bg-success",
-        "Failed" => "bg-danger",
-        "Cancelled" => "bg-warning",
-        "Running" => "bg-primary",
-        _ => "bg-secondary"
+        "Completed" => Color.Success,
+        "Failed" => Color.Error,
+        "Cancelled" => Color.Warning,
+        "Running" => Color.Primary,
+        _ => Color.Default
     };
 
     private HttpClient CreateClient()

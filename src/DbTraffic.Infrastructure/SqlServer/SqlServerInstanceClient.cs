@@ -105,7 +105,7 @@ public sealed class SqlServerInstanceClient : ISqlServerInstanceClient, IAsyncDi
                 cancellationToken),
             WaitTimeMs = await GetMetricAsync(
                 "WaitTimeMs",
-                "SELECT ISNULL(SUM(wait_time), 0) FROM sys.dm_exec_requests WHERE session_id <> @@SPID;",
+                "SELECT ISNULL(SUM(CAST(wait_time AS BIGINT)), 0) FROM sys.dm_exec_requests WHERE session_id <> @@SPID;",
                 reader => reader.GetInt64(0),
                 cancellationToken),
             CpuPercent = await GetCpuPercentAsync(cancellationToken),
@@ -142,7 +142,7 @@ public sealed class SqlServerInstanceClient : ISqlServerInstanceClient, IAsyncDi
     private async Task<double> GetCpuPercentAsync(CancellationToken cancellationToken)
     {
         const string query = @"
-            SELECT ISNULL(AVG(100 - SystemIdle), 0)
+            SELECT ISNULL(CAST(AVG(100 - SystemIdle) AS FLOAT), 0)
             FROM (SELECT TOP 10
                     CAST(record.value('(./Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'INT') AS FLOAT) AS SystemIdle
                   FROM (SELECT CAST(record AS XML) AS record, [timestamp]
@@ -171,7 +171,7 @@ public sealed class SqlServerInstanceClient : ISqlServerInstanceClient, IAsyncDi
     private async Task<double> GetMemoryPercentAsync(CancellationToken cancellationToken)
     {
         const string query = @"
-            SELECT ISNULL((pm.physical_memory_in_use_kb / 1024.0) / (sm.total_physical_memory_kb / 1024.0) * 100.0, 0)
+            SELECT ISNULL(CAST((pm.physical_memory_in_use_kb / 1024.0) / (sm.total_physical_memory_kb / 1024.0) * 100.0 AS FLOAT), 0)
             FROM sys.dm_os_process_memory pm
             CROSS JOIN sys.dm_os_sys_memory sm;";
 

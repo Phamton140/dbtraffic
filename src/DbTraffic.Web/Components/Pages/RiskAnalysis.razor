@@ -3,92 +3,108 @@
 @using DbTraffic.Core.Rules
 @using DbTraffic.Core.Services
 @inject IHttpClientFactory HttpClientFactory
+
 @inject NavigationManager Navigation
+@inject ISnackbar Snackbar
 
 <PageTitle>Análisis de riesgo - DbTraffic</PageTitle>
 
-<h1>Análisis de riesgo</h1>
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6">
+    <MudText Typo="Typo.h4" Class="mb-4">Análisis de riesgo</MudText>
 
-@if (_processes == null)
-{
-    <p><em>Cargando procesos...</em></p>
-}
-else
-{
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
-                    Simular ejecución
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label">Proceso</label>
-                        <select class="form-select" @bind="_selectedProcessId">
-                            <option value="">Seleccione...</option>
+    @if (_processes == null)
+    {
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+    }
+    else
+    {
+        <MudGrid>
+            <MudItem xs="12" lg="4">
+                <MudCard Elevation="2">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">Simular ejecución</MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudSelect @bind-Value="_selectedProcessId" Label="Proceso" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true" Required="true">
+                            <MudSelectItem Value="Guid.Empty">Seleccione...</MudSelectItem>
                             @foreach (var process in _processes)
                             {
-                                <option value="@process.Id">@process.Name</option>
+                                <MudSelectItem Value="process.Id">@process.Name</MudSelectItem>
                             }
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Fecha y hora propuesta</label>
-                        <input type="datetime-local" class="form-control" @bind="_proposedStartTime" />
-                    </div>
-                    <button class="btn btn-primary" @onclick="AnalyzeRisk" disabled="@(_selectedProcessId == Guid.Empty)">Analizar riesgo</button>
-                </div>
-            </div>
-        </div>
+                        </MudSelect>
+                        <MudDatePicker @bind-Date="_proposedDate" Label="Fecha propuesta" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mt-4" />
+                        <MudTimePicker @bind-Time="_proposedTime" Label="Hora propuesta" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mt-4" />
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="AnalyzeRisk" Disabled="@(_selectedProcessId == Guid.Empty)" StartIcon="@Icons.Material.Filled.Analytics">Analizar riesgo</MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
 
-        <div class="col-md-8">
-            @if (_assessment != null)
-            {
-                <div class="card">
-                    <div class="card-header">
-                        Resultado del análisis
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <h4>
-                                Nivel de riesgo:
-                                <span class="badge @GetRiskBadgeClass(_assessment.OverallLevel)">@_assessment.OverallLevel</span>
-                            </h4>
-                            <p class="mb-1">Score total: <strong>@_assessment.TotalScore.ToString("F1")</strong></p>
-                        </div>
-
-                        <h5>Hallazgos</h5>
-                        @if (_assessment.Findings.All(f => f.Level == RiskLevel.None))
-                        {
-                            <p class="text-success">No se detectaron riesgos.</p>
-                        }
-                        else
-                        {
-                            <ul class="list-group">
-                                @foreach (var finding in _assessment.Findings.Where(f => f.Level != RiskLevel.None))
-                                {
-                                    <li class="list-group-item">
-                                        <div class="d-flex w-100 justify-content-between">
-                                            <h6 class="mb-1">@finding.RuleName</h6>
-                                            <span class="badge @GetRiskBadgeClass(finding.Level)">@finding.Level</span>
-                                        </div>
-                                        <p class="mb-1">@finding.Message</p>
-                                        <small>Score: @finding.Score.ToString("F1")</small>
-                                    </li>
-                                }
-                            </ul>
-                        }
-                    </div>
-                </div>
-            }
-        </div>
-    </div>
-}
+            <MudItem xs="12" lg="8">
+                @if (_assessment != null)
+                {
+                    <MudCard Elevation="2">
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6">Resultado del análisis</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudGrid>
+                                <MudItem xs="12" md="5" Class="d-flex flex-column align-center justify-center">
+                                    <MudProgressCircular Size="Size.Large" Value="GetGaugeValue()" Max="100" Color="GetRiskColor(_assessment.OverallLevel)" Style="width: 180px; height: 180px;" />
+                                    <MudText Typo="Typo.h3" Class="mt-4">@_assessment.TotalScore.ToString("F0")</MudText>
+                                    <MudChip T="string" Size="Size.Large" Color="GetRiskColor(_assessment.OverallLevel)" Class="mt-2">@_assessment.OverallLevel</MudChip>
+                                </MudItem>
+                                <MudItem xs="12" md="7">
+                                    <MudText Typo="Typo.h6" Class="mb-3">Hallazgos</MudText>
+                                    @if (_assessment.Findings.All(f => f.Level == RiskLevel.None))
+                                    {
+                                        <MudAlert Severity="Severity.Success" Dense="true">No se detectaron riesgos.</MudAlert>
+                                    }
+                                    else
+                                    {
+                                        <MudList T="RuleResult" Dense="true">
+                                            @foreach (var finding in _assessment.Findings.Where(f => f.Level != RiskLevel.None))
+                                            {
+                                                <MudListItem T="RuleResult">
+                                                    <div class="d-flex align-center justify-space-between">
+                                                        <MudText Typo="Typo.subtitle2">@finding.RuleName</MudText>
+                                                        <MudChip T="string" Size="Size.Small" Color="GetRiskColor(finding.Level)">@finding.Level</MudChip>
+                                                    </div>
+                                                    <MudText Typo="Typo.body2">@finding.Message</MudText>
+                                                    <MudText Typo="Typo.caption">Score: @finding.Score.ToString("F1")</MudText>
+                                                </MudListItem>
+                                                <MudDivider />
+                                            }
+                                        </MudList>
+                                    }
+                                </MudItem>
+                            </MudGrid>
+                        </MudCardContent>
+                    </MudCard>
+                }
+                else
+                {
+                    <MudCard Elevation="0" Class="pa-6 d-flex flex-column align-center justify-center" Style="background-color: #FFFFFF; min-height: 300px;">
+                        <MudIcon Icon="@Icons.Material.Filled.Analytics" Color="Color.Primary" Size="Size.Large" Class="mb-4" />
+                        <MudText Typo="Typo.h6" Align="Align.Center">Selecciona un proceso y una fecha/hora para analizar el riesgo.</MudText>
+                    </MudCard>
+                }
+            </MudItem>
+        </MudGrid>
+    }
+</MudContainer>
 
 @code {
     private List<Process>? _processes;
     private Guid _selectedProcessId;
     private DateTime _proposedStartTime = DateTime.Now;
+    private DateTime? _proposedDate = DateTime.Now.Date;
+    private TimeSpan? _proposedTime = DateTime.Now.TimeOfDay;
     private RiskAssessment? _assessment;
 
     protected override async Task OnInitializedAsync()
@@ -101,22 +117,42 @@ else
     {
         if (_selectedProcessId == Guid.Empty) return;
 
+        var proposed = CombineDateTime(_proposedDate, _proposedTime) ?? DateTime.Now;
+        _proposedStartTime = proposed;
+
         var client = CreateClient();
-        var response = await client.GetAsync($"api/risk?processId={_selectedProcessId}&proposedStartTime={Uri.EscapeDataString(_proposedStartTime.ToString("O"))}");
+        var response = await client.GetAsync($"api/risk?processId={_selectedProcessId}&proposedStartTime={Uri.EscapeDataString(proposed.ToString("O"))}");
         if (response.IsSuccessStatusCode)
         {
             _assessment = await response.Content.ReadFromJsonAsync<RiskAssessment>();
         }
+        else
+        {
+            Snackbar.Add("Error al analizar riesgo", Severity.Error);
+        }
     }
 
-    private static string GetRiskBadgeClass(RiskLevel level) => level switch
+    private DateTime? CombineDateTime(DateTime? date, TimeSpan? time)
     {
-        RiskLevel.None => "bg-success",
-        RiskLevel.Low => "bg-info",
-        RiskLevel.Medium => "bg-warning",
-        RiskLevel.High => "bg-danger",
-        RiskLevel.Critical => "bg-dark",
-        _ => "bg-secondary"
+        if (!date.HasValue) return null;
+        return date.Value.Date + (time ?? TimeSpan.Zero);
+    }
+
+    private int GetGaugeValue()
+    {
+        if (_assessment == null) return 0;
+        var value = (int)_assessment.TotalScore;
+        return value > 100 ? 100 : value;
+    }
+
+    private static Color GetRiskColor(RiskLevel level) => level switch
+    {
+        RiskLevel.None => Color.Success,
+        RiskLevel.Low => Color.Info,
+        RiskLevel.Medium => Color.Warning,
+        RiskLevel.High => Color.Error,
+        RiskLevel.Critical => Color.Dark,
+        _ => Color.Default
     };
 
     private HttpClient CreateClient()

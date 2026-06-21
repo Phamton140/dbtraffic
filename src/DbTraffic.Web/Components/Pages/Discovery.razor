@@ -2,119 +2,112 @@
 @using DbTraffic.Core.Entities
 @inject IHttpClientFactory HttpClientFactory
 @inject NavigationManager Navigation
+@inject ISnackbar Snackbar
 
 <PageTitle>Descubrimiento - DbTraffic</PageTitle>
 
-<h1>Descubrimiento asistido</h1>
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6">
+    <MudText Typo="Typo.h4" Class="mb-4">Descubrimiento asistido</MudText>
 
-@if (_instances == null)
-{
-    <p><em>Cargando instancias...</em></p>
-}
-else
-{
-    <div class="mb-3">
-        <label class="form-label">Instancia</label>
-        <select class="form-select" @bind="_selectedInstanceId">
-            <option value="">Seleccione una instancia...</option>
-            @foreach (var instance in _instances)
-            {
-                <option value="@instance.Id">@instance.Name</option>
-            }
-        </select>
-    </div>
-
-    <div class="mb-3">
-        <button class="btn btn-primary" @onclick="RunDiscovery" disabled="@(_selectedInstanceId == Guid.Empty)">Ejecutar descubrimiento</button>
-        <button class="btn btn-secondary" @onclick="LoadDiscoveryResults" disabled="@(_selectedInstanceId == Guid.Empty)">Ver resultados</button>
-    </div>
-
-    @if (!string.IsNullOrEmpty(_message))
+    @if (_instances == null)
     {
-        <div class="alert alert-info">@_message</div>
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
     }
-
-    @if (_jobs != null)
+    else
     {
-        <h3>Jobs descubiertos</h3>
-        @if (_jobs.Count == 0)
+        <MudCard Elevation="2" Class="mb-4">
+            <MudCardContent>
+                <MudGrid>
+                    <MudItem xs="12" md="6">
+                        <MudSelect @bind-Value="_selectedInstanceId" Label="Instancia" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true">
+                            <MudSelectItem Value="Guid.Empty">Seleccione una instancia...</MudSelectItem>
+                            @foreach (var instance in _instances)
+                            {
+                                <MudSelectItem Value="instance.Id">@instance.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" md="6" Class="d-flex align-center">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="RunDiscovery" Disabled="@(_selectedInstanceId == Guid.Empty)" StartIcon="@Icons.Material.Filled.PlayArrow">Ejecutar descubrimiento</MudButton>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="LoadDiscoveryResults" Disabled="@(_selectedInstanceId == Guid.Empty)" Class="ml-2" StartIcon="@Icons.Material.Filled.Refresh">Ver resultados</MudButton>
+                    </MudItem>
+                </MudGrid>
+            </MudCardContent>
+        </MudCard>
+
+        @if (!string.IsNullOrEmpty(_message))
         {
-            <p>No se encontraron jobs.</p>
+            <MudAlert Severity="Severity.Info" Class="mb-4" Dense="true">@_message</MudAlert>
         }
-        else
+
+        @if (_jobs != null || _objects != null)
         {
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Nombre</th>
-                        <th>Habilitado</th>
-                        <th>Proceso asociado</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var job in _jobs)
+            <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" Style="background-color: #FFFFFF;">
+                <MudTabPanel Text="Jobs descubiertos" Icon="@Icons.Material.Filled.Schedule">
+                    @if (_jobs == null || _jobs.Count == 0)
                     {
-                        <tr>
-                            <td>@job.Name</td>
-                            <td>
-                                @if (job.Enabled)
-                                {
-                                    <span class="badge bg-success">Sí</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-secondary">No</span>
-                                }
-                            </td>
-                            <td>@GetAssociatedProcessName(job.AssociatedProcessId)</td>
-                            <td>
-                                <select class="form-select form-select-sm" @onchange="e => AssociateJob(job.Id, e.Value)">
-                                    <option value="">Sin asociar</option>
-                                    @foreach (var process in _processes ?? new List<Process>())
+                        <MudText Typo="Typo.body2">No se encontraron jobs.</MudText>
+                    }
+                    else
+                    {
+                        <MudTable Items="_jobs" Hover="true" Striped="true" Bordered="true" Breakpoint="Breakpoint.Sm">
+                            <HeaderContent>
+                                <MudTh>Nombre</MudTh>
+                                <MudTh>Habilitado</MudTh>
+                                <MudTh>Proceso asociado</MudTh>
+                                <MudTh>Asociar</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="Nombre">@context.Name</MudTd>
+                                <MudTd DataLabel="Habilitado">
+                                    @if (context.Enabled)
                                     {
-                                        <option value="@process.Id" selected="@(job.AssociatedProcessId == process.Id)">@process.Name</option>
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Success">Sí</MudChip>
                                     }
-                                </select>
-                            </td>
-                        </tr>
+                                    else
+                                    {
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Default">No</MudChip>
+                                    }
+                                </MudTd>
+                                <MudTd DataLabel="Proceso asociado">@GetAssociatedProcessName(context.AssociatedProcessId)</MudTd>
+                                <MudTd DataLabel="Asociar">
+                                    <MudSelect T="Guid?" Value="context.AssociatedProcessId" ValueChanged="v => AssociateJob(context.Id, v)" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true">
+                                        <MudSelectItem T="Guid?" Value="null">Sin asociar</MudSelectItem>
+                                        @foreach (var process in _processes ?? new List<Process>())
+                                        {
+                                            <MudSelectItem T="Guid?" Value="process.Id">@process.Name</MudSelectItem>
+                                        }
+                                    </MudSelect>
+                                </MudTd>
+                            </RowTemplate>
+                        </MudTable>
                     }
-                </tbody>
-            </table>
-        }
-    }
-
-    @if (_objects != null)
-    {
-        <h3>Objetos descubiertos</h3>
-        @if (_objects.Count == 0)
-        {
-            <p>No se encontraron objetos de usuario en la base de datos configurada.</p>
-        }
-        else
-        {
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Esquema</th>
-                        <th>Objeto</th>
-                        <th>Tipo</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var obj in _objects)
+                </MudTabPanel>
+                <MudTabPanel Text="Objetos descubiertos" Icon="@Icons.Material.Filled.Dataset">
+                    @if (_objects == null || _objects.Count == 0)
                     {
-                        <tr>
-                            <td>@obj.SchemaName</td>
-                            <td>@obj.ObjectName</td>
-                            <td>@obj.ObjectType</td>
-                        </tr>
+                        <MudText Typo="Typo.body2">No se encontraron objetos de usuario en la base de datos configurada.</MudText>
                     }
-                </tbody>
-            </table>
+                    else
+                    {
+                        <MudTable Items="_objects" Hover="true" Striped="true" Bordered="true" Breakpoint="Breakpoint.Sm">
+                            <HeaderContent>
+                                <MudTh>Esquema</MudTh>
+                                <MudTh>Objeto</MudTh>
+                                <MudTh>Tipo</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="Esquema">@context.SchemaName</MudTd>
+                                <MudTd DataLabel="Objeto">@context.ObjectName</MudTd>
+                                <MudTd DataLabel="Tipo">@context.ObjectType</MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    }
+                </MudTabPanel>
+            </MudTabs>
         }
     }
-}
+</MudContainer>
 
 @code {
     private List<Instance>? _instances;
@@ -141,11 +134,13 @@ else
         if (response.IsSuccessStatusCode)
         {
             _message = "Descubrimiento completado.";
+            Snackbar.Add("Descubrimiento completado", Severity.Success);
             await LoadDiscoveryResults();
         }
         else
         {
             _message = $"Error en descubrimiento: {response.StatusCode}";
+            Snackbar.Add(_message, Severity.Error);
         }
     }
 
@@ -166,19 +161,18 @@ else
         return _processes?.FirstOrDefault(p => p.Id == processId.Value)?.Name ?? "Desconocido";
     }
 
-    private async Task AssociateJob(Guid jobId, object? value)
+    private async Task AssociateJob(Guid jobId, Guid? processId)
     {
-        Guid? processId = null;
-        if (value is string str && Guid.TryParse(str, out var parsedId))
-        {
-            processId = parsedId;
-        }
-
         var client = CreateClient();
         var response = await client.PostAsJsonAsync($"api/discovery/associate/{jobId}", new { ProcessId = processId });
         if (response.IsSuccessStatusCode)
         {
             await LoadDiscoveryResults();
+            Snackbar.Add("Asociación actualizada", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("Error al asociar job", Severity.Error);
         }
     }
 

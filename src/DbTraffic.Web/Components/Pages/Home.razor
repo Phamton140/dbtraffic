@@ -2,39 +2,82 @@
 
 <PageTitle>DbTraffic - Dashboard</PageTitle>
 
-<h1>DbTraffic</h1>
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6">
+    <MudText Typo="Typo.h3" Class="mb-2">Dashboard</MudText>
+    <MudText Typo="Typo.subtitle1" Class="mb-6">Controlador de tráfico para cargas de trabajo de bases de datos SQL Server.</MudText>
 
-<p class="lead">
-    Controlador de tráfico para cargas de trabajo de bases de datos SQL Server.
-</p>
-
-<div class="row mt-4">
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Instancias</h5>
-                <p class="card-text">Registra y gestiona las instancias SQL Server que deseas monitorear.</p>
-                <a href="instances" class="btn btn-primary">Ver instancias</a>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Procesos</h5>
-                <p class="card-text">Cataloga jobs, ETLs, stored procedures y otros procesos de base de datos.</p>
-                <a href="processes" class="btn btn-primary">Ver procesos</a>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Estado</h5>
-                <p class="card-text">Consulta la conectividad con SQL Server y requests activos.</p>
-                <a href="api/health/sql" target="_blank" class="btn btn-secondary">Health check</a>
-            </div>
-        </div>
-    </div>
-</div>
-
+    <MudGrid>
+        <MudItem xs="12" md="4">
+            <MudCard Elevation="2" Style="height: 100%;">
+                <MudCardContent>
+                    <MudIcon Icon="@Icons.Material.Filled.Warning" Color="Color.Primary" Size="Size.Large" Class="mb-3" />
+                    <MudText Typo="Typo.h6">Análisis de riesgo</MudText>
+                    <MudText Typo="Typo.body2">Simula la ejecución de un proceso en una fecha/hora propuesta y detecta conflictos antes de que ocurran.</MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Href="risk" Variant="Variant.Filled" Color="Color.Primary">Ir a riesgo</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" md="4">
+            <MudCard Elevation="2" Style="height: 100%;">
+                <MudCardContent>
+                    <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Color="Color.Secondary" Size="Size.Large" Class="mb-3" />
+                    <MudText Typo="Typo.h6">Recomendaciones</MudText>
+                    <MudText Typo="Typo.body2">Encuentra ventanas de ejecución de bajo riesgo dentro de un rango de fechas configurable.</MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Href="recommendations" Variant="Variant.Filled" Color="Color.Secondary">Buscar ventanas</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" md="4">
+            <MudCard Elevation="2" Style="height: 100%;">
+                <MudCardContent>
+                    <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Color="Color.Success" Size="Size.Large" Class="mb-3" />
+                    <MudText Typo="Typo.h6">Monitoreo</MudText>
+                    <MudText Typo="Typo.body2">Consulta métricas en tiempo real de CPU, memoria, requests activos y sesiones bloqueadoras.</MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Href="monitoring" Variant="Variant.Filled" Color="Color.Success">Ver monitoreo</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" md="4">
+            <MudCard Elevation="2" Style="height: 100%;">
+                <MudCardContent>
+                    <MudIcon Icon="@Icons.Material.Filled.Storage" Color="Color.Info" Size="Size.Large" Class="mb-3" />
+                    <MudText Typo="Typo.h6">Instancias</MudText>
+                    <MudText Typo="Typo.body2">Registra y gestiona las instancias SQL Server que deseas monitorear.</MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Href="instances" Variant="Variant.Outlined" Color="Color.Info">Gestionar instancias</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" md="4">
+            <MudCard Elevation="2" Style="height: 100%;">
+                <MudCardContent>
+                    <MudIcon Icon="@Icons.Material.Filled.Repeat" Color="Color.Info" Size="Size.Large" Class="mb-3" />
+                    <MudText Typo="Typo.h6">Procesos</MudText>
+                    <MudText Typo="Typo.body2">Cataloga jobs, ETLs, stored procedures y otros procesos de base de datos.</MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Href="processes" Variant="Variant.Outlined" Color="Color.Info">Gestionar procesos</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" md="4">
+            <MudCard Elevation="2" Style="height: 100%;">
+                <MudCardContent>
+                    <MudIcon Icon="@Icons.Material.Filled.Search" Color="Color.Info" Size="Size.Large" Class="mb-3" />
+                    <MudText Typo="Typo.h6">Descubrimiento</MudText>
+                    <MudText Typo="Typo.body2">Descubre jobs y objetos de SQL Agent para asociarlos a tus procesos.</MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Href="discovery" Variant="Variant.Outlined" Color="Color.Info">Descubrir</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+</MudContainer>

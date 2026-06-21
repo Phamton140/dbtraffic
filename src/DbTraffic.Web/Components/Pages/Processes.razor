@@ -3,116 +3,99 @@
 @using DbTraffic.Core.Enums
 @inject IHttpClientFactory HttpClientFactory
 @inject NavigationManager Navigation
+@inject ISnackbar Snackbar
 
 <PageTitle>Procesos - DbTraffic</PageTitle>
 
-<h1>Procesos</h1>
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6">
+    <MudText Typo="Typo.h4" Class="mb-4">Procesos</MudText>
 
-@if (_processes == null || _instances == null)
-{
-    <p><em>Cargando...</em></p>
-}
-else
-{
-    <div class="row">
-        <div class="col-md-8">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Nombre</th>
-                        <th>Tipo</th>
-                        <th>Instancia</th>
-                        <th>Duración estimada</th>
-                        <th>Intensidad</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var process in _processes)
-                    {
-                        <tr>
-                            <td>@process.Name</td>
-                            <td>@process.ProcessType</td>
-                            <td>@GetInstanceName(process.InstanceId)</td>
-                            <td>@process.EstimatedDurationMinutes min</td>
-                            <td>
-                                <span class="badge bg-info">CPU @process.CpuIntensity</span>
-                                <span class="badge bg-warning">IO @process.IoIntensity</span>
-                            </td>
-                            <td>
-                                <button class="btn btn-sm btn-danger" @onclick="() => DeleteProcess(process.Id)">Eliminar</button>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
-                    Nuevo proceso
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label">Nombre</label>
-                        <input class="form-control" @bind="_newProcess.Name" />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Instancia</label>
-                        <select class="form-select" @bind="_newProcess.InstanceId">
-                            <option value="">Seleccione...</option>
+    @if (_processes == null || _instances == null)
+    {
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+    }
+    else
+    {
+        <MudGrid>
+            <MudItem xs="12" lg="8">
+                <MudTable Items="_processes" Hover="true" Striped="true" Bordered="true" Elevation="2" Breakpoint="Breakpoint.Sm">
+                    <HeaderContent>
+                        <MudTh>Nombre</MudTh>
+                        <MudTh>Tipo</MudTh>
+                        <MudTh>Instancia</MudTh>
+                        <MudTh>Duración</MudTh>
+                        <MudTh>Intensidad</MudTh>
+                        <MudTh Style="text-align: right;">Acciones</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Nombre">@context.Name</MudTd>
+                        <MudTd DataLabel="Tipo">@context.ProcessType</MudTd>
+                        <MudTd DataLabel="Instancia">@GetInstanceName(context.InstanceId)</MudTd>
+                        <MudTd DataLabel="Duración">@context.EstimatedDurationMinutes min</MudTd>
+                        <MudTd DataLabel="Intensidad">
+                            <MudChip T="string" Size="Size.Small" Color="Color.Info">CPU @context.CpuIntensity</MudChip>
+                            <MudChip T="string" Size="Size.Small" Color="Color.Warning">IO @context.IoIntensity</MudChip>
+                        </MudTd>
+                        <MudTd Style="text-align: right;">
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="() => DeleteProcess(context.Id)" aria-label="Eliminar proceso" />
+                        </MudTd>
+                    </RowTemplate>
+                    <NoRecordsContent>
+                        <MudText Typo="Typo.body2">No hay procesos registrados.</MudText>
+                    </NoRecordsContent>
+                </MudTable>
+            </MudItem>
+
+            <MudItem xs="12" lg="4">
+                <MudCard Elevation="2">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">Nuevo proceso</MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudTextField @bind-Value="_newProcess.Name" Label="Nombre" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
+                        <MudSelect @bind-Value="_newProcess.InstanceId" Label="Instancia" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true" Class="mt-3" Required="true">
+                            <MudSelectItem Value="Guid.Empty">Seleccione...</MudSelectItem>
                             @foreach (var instance in _instances)
                             {
-                                <option value="@instance.Id">@instance.Name</option>
+                                <MudSelectItem Value="instance.Id">@instance.Name</MudSelectItem>
                             }
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Tipo</label>
-                        <select class="form-select" @bind="_newProcess.ProcessType">
+                        </MudSelect>
+                        <MudSelect @bind-Value="_newProcess.ProcessType" Label="Tipo" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true" Class="mt-3">
                             @foreach (var type in Enum.GetValues<ProcessType>())
                             {
-                                <option value="@type">@type</option>
+                                <MudSelectItem Value="type">@type</MudSelectItem>
                             }
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Duración estimada (min)</label>
-                        <input type="number" class="form-control" @bind="_newProcess.EstimatedDurationMinutes" />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Intensidad CPU</label>
-                        <select class="form-select" @bind="_newProcess.CpuIntensity">
+                        </MudSelect>
+                        <MudNumericField @bind-Value="_newProcess.EstimatedDurationMinutes" Label="Duración estimada (min)" Variant="Variant.Outlined" Margin="Margin.Dense" Min="1" Class="mt-3" />
+                        <MudSelect @bind-Value="_newProcess.CpuIntensity" Label="Intensidad CPU" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true" Class="mt-3">
                             @foreach (var level in Enum.GetValues<IntensityLevel>())
                             {
-                                <option value="@level">@level</option>
+                                <MudSelectItem Value="level">@level</MudSelectItem>
                             }
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Intensidad IO</label>
-                        <select class="form-select" @bind="_newProcess.IoIntensity">
+                        </MudSelect>
+                        <MudSelect @bind-Value="_newProcess.IoIntensity" Label="Intensidad IO" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true" Class="mt-3">
                             @foreach (var level in Enum.GetValues<IntensityLevel>())
                             {
-                                <option value="@level">@level</option>
+                                <MudSelectItem Value="level">@level</MudSelectItem>
                             }
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Intensidad Memoria</label>
-                        <select class="form-select" @bind="_newProcess.MemoryIntensity">
+                        </MudSelect>
+                        <MudSelect @bind-Value="_newProcess.MemoryIntensity" Label="Intensidad Memoria" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true" Class="mt-3">
                             @foreach (var level in Enum.GetValues<IntensityLevel>())
                             {
-                                <option value="@level">@level</option>
+                                <MudSelectItem Value="level">@level</MudSelectItem>
                             }
-                        </select>
-                    </div>
-                    <button class="btn btn-primary" @onclick="CreateProcess">Crear</button>
-                </div>
-            </div>
-        </div>
-    </div>
-}
+                        </MudSelect>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CreateProcess">Crear</MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+    }
+</MudContainer>
 
 @code {
     private List<Process>? _processes;
@@ -144,6 +127,11 @@ else
         {
             _newProcess = new Process();
             await LoadDataAsync();
+            Snackbar.Add("Proceso creado", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add($"Error al crear proceso: {response.StatusCode}", Severity.Error);
         }
     }
 
@@ -154,6 +142,11 @@ else
         if (response.IsSuccessStatusCode)
         {
             await LoadDataAsync();
+            Snackbar.Add("Proceso eliminado", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add($"Error al eliminar proceso: {response.StatusCode}", Severity.Error);
         }
     }
 

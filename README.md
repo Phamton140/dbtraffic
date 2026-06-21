@@ -10,9 +10,9 @@ DbTraffic actúa como un **controlador de tráfico para cargas de trabajo de bas
 
 ## Estado del proyecto
 
-- **Fase actual**: Fase 6 - Cierre del MVP.
-- **Versión**: 0.1.0.
-- **Estado del repositorio**: estable, listo para release.
+- **Fase actual**: Fase 7 - Modernización UI/UX con MudBlazor.
+- **Versión**: 1.0.0.
+- **Estado del repositorio**: estable, release importante de cierre de Q1.
 
 Consulta la documentación en `/docs` para más detalles.
 

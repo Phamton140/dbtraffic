@@ -4,109 +4,115 @@
 @using DbTraffic.Core.Services
 @inject IHttpClientFactory HttpClientFactory
 @inject NavigationManager Navigation
+@inject ISnackbar Snackbar
 
 <PageTitle>Recomendaciones - DbTraffic</PageTitle>
 
-<h1>Recomendaciones de ejecución</h1>
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6">
+    <MudText Typo="Typo.h4" Class="mb-4">Recomendaciones de ejecución</MudText>
 
-@if (_processes == null)
-{
-    <p><em>Cargando procesos...</em></p>
-}
-else
-{
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
-                    Buscar ventanas
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label">Proceso</label>
-                        <select class="form-select" @bind="_selectedProcessId">
-                            <option value="">Seleccione...</option>
+    @if (_processes == null)
+    {
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+    }
+    else
+    {
+        <MudGrid>
+            <MudItem xs="12" lg="4">
+                <MudCard Elevation="2">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">Buscar ventanas</MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudSelect @bind-Value="_selectedProcessId" Label="Proceso" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true" Required="true">
+                            <MudSelectItem Value="Guid.Empty">Seleccione...</MudSelectItem>
                             @foreach (var process in _processes)
                             {
-                                <option value="@process.Id">@process.Name</option>
+                                <MudSelectItem Value="process.Id">@process.Name</MudSelectItem>
                             }
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Inicio de búsqueda</label>
-                        <input type="datetime-local" class="form-control" @bind="_searchStart" />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Fin de búsqueda</label>
-                        <input type="datetime-local" class="form-control" @bind="_searchEnd" />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Granularidad (min)</label>
-                        <input type="number" class="form-control" @bind="_granularityMinutes" />
-                    </div>
-                    <button class="btn btn-primary" @onclick="FindRecommendations" disabled="@(_selectedProcessId == Guid.Empty)">Buscar recomendaciones</button>
-                    <button class="btn btn-secondary ms-2" @onclick="SimulateNow" disabled="@(_selectedProcessId == Guid.Empty)">Simular "ahora"</button>
-                </div>
-            </div>
-        </div>
+                        </MudSelect>
+                        <MudDatePicker @bind-Date="_searchStartDate" Label="Inicio de búsqueda" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mt-4" />
+                        <MudDatePicker @bind-Date="_searchEndDate" Label="Fin de búsqueda" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mt-4" />
+                        <MudNumericField @bind-Value="_granularityMinutes" Label="Granularidad (min)" Variant="Variant.Outlined" Margin="Margin.Dense" Min="5" Class="mt-4" />
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="FindRecommendations" Disabled="@(_selectedProcessId == Guid.Empty)" StartIcon="@Icons.Material.Filled.Search">Buscar recomendaciones</MudButton>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="SimulateNow" Disabled="@(_selectedProcessId == Guid.Empty)" Class="ml-2">Simular "ahora"</MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
 
-        <div class="col-md-8">
-            @if (_nowAssessment != null)
-            {
-                <div class="alert @(GetAlertClass(_nowAssessment.OverallLevel))">
-                    <h5>Simulación: ejecutar ahora</h5>
-                    <p class="mb-1">Nivel: <strong>@_nowAssessment.OverallLevel</strong></p>
-                    <p class="mb-0">Score: <strong>@_nowAssessment.TotalScore.ToString("F1")</strong></p>
-                </div>
-            }
-
-            @if (_recommendations != null)
-            {
-                <h3>Ventanas recomendadas</h3>
-                @if (_recommendations.Count == 0)
+            <MudItem xs="12" lg="8">
+                @if (_nowAssessment != null)
                 {
-                    <p>No se encontraron ventanas de bajo riesgo en el rango seleccionado.</p>
+                    <MudAlert Severity="GetAlertSeverity(_nowAssessment.OverallLevel)" Class="mb-4" Dense="true">
+                        <MudText Typo="Typo.subtitle1">Simulación: ejecutar ahora</MudText>
+                        <MudText Typo="Typo.body2">Nivel: <strong>@_nowAssessment.OverallLevel</strong> · Score: <strong>@_nowAssessment.TotalScore.ToString("F1")</strong></MudText>
+                    </MudAlert>
+                }
+
+                @if (_recommendations != null)
+                {
+                    <MudCard Elevation="2">
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6">Ventanas recomendadas</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            @if (_recommendations.Count == 0)
+                            {
+                                <MudText Typo="Typo.body2">No se encontraron ventanas de bajo riesgo en el rango seleccionado.</MudText>
+                            }
+                            else
+                            {
+                                <MudTable Items="_recommendations" Hover="true" Striped="true" Bordered="true" Breakpoint="Breakpoint.Sm">
+                                    <HeaderContent>
+                                        <MudTh>Inicio</MudTh>
+                                        <MudTh>Fin</MudTh>
+                                        <MudTh>Nivel</MudTh>
+                                        <MudTh>Score</MudTh>
+                                    </HeaderContent>
+                                    <RowTemplate>
+                                        <MudTd DataLabel="Inicio">@context.StartTime.ToString("g")</MudTd>
+                                        <MudTd DataLabel="Fin">@context.EndTime.ToString("g")</MudTd>
+                                        <MudTd DataLabel="Nivel"><MudChip T="string" Size="Size.Small" Color="GetRiskColor(context.RiskLevel)">@context.RiskLevel</MudChip></MudTd>
+                                        <MudTd DataLabel="Score">@context.RiskScore.ToString("F1")</MudTd>
+                                    </RowTemplate>
+                                </MudTable>
+                            }
+                        </MudCardContent>
+                    </MudCard>
                 }
                 else
                 {
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>Inicio</th>
-                                <th>Fin</th>
-                                <th>Nivel</th>
-                                <th>Score</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var window in _recommendations)
-                            {
-                                <tr>
-                                    <td>@window.StartTime.ToString("g")</td>
-                                    <td>@window.EndTime.ToString("g")</td>
-                                    <td><span class="badge @GetRiskBadgeClass(window.RiskLevel)">@window.RiskLevel</span></td>
-                                    <td>@window.RiskScore.ToString("F1")</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+                    <MudCard Elevation="0" Class="pa-6 d-flex flex-column align-center justify-center" Style="background-color: #FFFFFF; min-height: 200px;">
+                        <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Color="Color.Primary" Size="Size.Large" Class="mb-4" />
+                        <MudText Typo="Typo.h6" Align="Align.Center">Define un rango de búsqueda para encontrar las mejores ventanas de ejecución.</MudText>
+                    </MudCard>
                 }
-            }
-        </div>
-    </div>
-}
+            </MudItem>
+        </MudGrid>
+    }
+</MudContainer>
 
 @code {
     private List<Process>? _processes;
     private Guid _selectedProcessId;
     private DateTime _searchStart = DateTime.Now;
     private DateTime _searchEnd = DateTime.Now.AddDays(3);
+    private DateTime? _searchStartDate;
+    private DateTime? _searchEndDate;
     private int _granularityMinutes = 30;
     private List<RecommendationWindow>? _recommendations;
     private RiskAssessment? _nowAssessment;
 
     protected override async Task OnInitializedAsync()
     {
+        _searchStartDate = _searchStart.Date;
+        _searchEndDate = _searchEnd.Date;
         var client = CreateClient();
         _processes = await client.GetFromJsonAsync<List<Process>>("api/processes");
     }
@@ -118,16 +124,23 @@ else
         _recommendations = null;
         _nowAssessment = null;
 
+        var start = _searchStartDate ?? _searchStart;
+        var end = _searchEndDate ?? _searchEnd;
+
         var client = CreateClient();
         var url = $"api/recommendations?processId={_selectedProcessId}" +
-                  $"&searchStart={Uri.EscapeDataString(_searchStart.ToString("O"))}" +
-                  $"&searchEnd={Uri.EscapeDataString(_searchEnd.ToString("O"))}" +
+                  $"&searchStart={Uri.EscapeDataString(start.ToString("O"))}" +
+                  $"&searchEnd={Uri.EscapeDataString(end.ToString("O"))}" +
                   $"&granularityMinutes={_granularityMinutes}";
 
         var response = await client.GetAsync(url);
         if (response.IsSuccessStatusCode)
         {
             _recommendations = await response.Content.ReadFromJsonAsync<List<RecommendationWindow>>();
+        }
+        else
+        {
+            Snackbar.Add("Error al buscar recomendaciones", Severity.Error);
         }
     }
 
@@ -142,25 +155,29 @@ else
         {
             _nowAssessment = await response.Content.ReadFromJsonAsync<RiskAssessment>();
         }
+        else
+        {
+            Snackbar.Add("Error al simular ejecución actual", Severity.Error);
+        }
     }
 
-    private static string GetRiskBadgeClass(RiskLevel level) => level switch
+    private static Color GetRiskColor(RiskLevel level) => level switch
     {
-        RiskLevel.None => "bg-success",
-        RiskLevel.Low => "bg-info",
-        RiskLevel.Medium => "bg-warning",
-        RiskLevel.High => "bg-danger",
-        RiskLevel.Critical => "bg-dark",
-        _ => "bg-secondary"
+        RiskLevel.None => Color.Success,
+        RiskLevel.Low => Color.Info,
+        RiskLevel.Medium => Color.Warning,
+        RiskLevel.High => Color.Error,
+        RiskLevel.Critical => Color.Dark,
+        _ => Color.Default
     };
 
-    private static string GetAlertClass(RiskLevel level) => level switch
+    private static Severity GetAlertSeverity(RiskLevel level) => level switch
     {
-        RiskLevel.None => "alert-success",
-        RiskLevel.Low => "alert-info",
-        RiskLevel.Medium => "alert-warning",
-        RiskLevel.High or RiskLevel.Critical => "alert-danger",
-        _ => "alert-secondary"
+        RiskLevel.None => Severity.Success,
+        RiskLevel.Low => Severity.Info,
+        RiskLevel.Medium => Severity.Warning,
+        RiskLevel.High or RiskLevel.Critical => Severity.Error,
+        _ => Severity.Normal
     };
 
     private HttpClient CreateClient()

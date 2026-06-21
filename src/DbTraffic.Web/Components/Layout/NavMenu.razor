@@ -1,52 +1,11 @@
-<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">DbTraffic</a>
-    </div>
-</div>
-
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
-
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="instances">
-                <span class="bi bi-server" aria-hidden="true"></span> Instancias
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="processes">
-                <span class="bi bi-arrow-repeat" aria-hidden="true"></span> Procesos
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="discovery">
-                <span class="bi bi-search" aria-hidden="true"></span> Descubrimiento
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="risk">
-                <span class="bi bi-exclamation-triangle" aria-hidden="true"></span> Riesgo
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="recommendations">
-                <span class="bi bi-calendar-check" aria-hidden="true"></span> Recomendaciones
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="monitoring">
-                <span class="bi bi-activity" aria-hidden="true"></span> Monitoreo
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="history">
-                <span class="bi bi-clock-history" aria-hidden="true"></span> Historial
-            </NavLink>
-        </div>
-    </nav>
-</div>
+<MudNavMenu Color="Color.Primary" Rounded="true">
+    <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Inicio</MudNavLink>
+    <MudNavLink Href="risk" Icon="@Icons.Material.Filled.Warning">Riesgo</MudNavLink>
+    <MudNavLink Href="recommendations" Icon="@Icons.Material.Filled.CalendarMonth">Recomendaciones</MudNavLink>
+    <MudNavLink Href="monitoring" Icon="@Icons.Material.Filled.TrendingUp">Monitoreo</MudNavLink>
+    <MudNavLink Href="history" Icon="@Icons.Material.Filled.History">Historial</MudNavLink>
+    <MudDivider Class="my-2" />
+    <MudNavLink Href="instances" Icon="@Icons.Material.Filled.Storage">Instancias</MudNavLink>
+    <MudNavLink Href="processes" Icon="@Icons.Material.Filled.Repeat">Procesos</MudNavLink>
+    <MudNavLink Href="discovery" Icon="@Icons.Material.Filled.Search">Descubrimiento</MudNavLink>
+</MudNavMenu>

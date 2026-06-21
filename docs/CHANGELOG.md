@@ -14,6 +14,31 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - `SqlServerInstanceClient.CanConnectAsync`: ahora captura excepciones durante la apertura de conexión, evitando que connection strings inválidas propaguen errores.
 - `DiscoveryService.DiscoverInstanceAsync`: ya no relanza excepciones cuando el descubrimiento de una instancia falla. Registra el error y continúa con las demás instancias activas.
 - `App.razor`: se agregaron referencias a Bootstrap 5.3.2, Bootstrap Icons 1.11.1 y Bootstrap JS desde CDN para corregir el diseño de la UI.
+- `SqlServerInstanceClient`: corrección de desbordamiento aritmético en `WaitTimeMs` al hacer `SUM(wait_time)`; ahora se usa `SUM(CAST(wait_time AS BIGINT))`.
+- `SqlServerInstanceClient`: corrección de casting en `MemoryPercent` (`System.Decimal` a `System.Double`) forzando `CAST(... AS FLOAT)` en la consulta.
+- `SqlServerInstanceClient`: casting a `FLOAT` en `CpuPercent` para garantizar compatibilidad de tipo de retorno con `reader.GetDouble`.
+
+## [1.0.0] - 2026-06-20
+
+### Added
+- Fase 7: modernización completa de UI/UX con MudBlazor 9.5.0.
+- Tema corporativo con paleta de colores: primario `#1565C0`, secundario `#1976D2`, éxito `#2E7D32`, advertencia `#ED6C02`, crítico `#D32F2F`, fondo `#F5F7FA`, superficie `#FFFFFF`.
+- Layout profesional con `MudAppBar`, `MudDrawer` colapsable y topbar con estado SQL, hora y versión.
+- Snackbar global para retroalimentación de acciones (crear, eliminar, importar, calibrar, etc.).
+- Rediseño de todas las páginas Blazor con componentes MudBlazor (`MudTable`, `MudCard`, `MudSelect`, `MudProgressCircular`, `MudAlert`, `MudTabs`, `MudProgressLinear`).
+- Página `/risk` convertida en experiencia principal con gauge circular grande, score numérico y lista de hallazgos con chips de color.
+- Dashboard de inicio con tarjetas de navegación a las funcionalidades principales.
+- Estados vacíos y esqueletos de carga en todas las pantallas.
+- Tooltips y roles ARIA en botones de acción.
+
+### Changed
+- `App.razor`: reemplazadas referencias CDN de Bootstrap por fuentes Roboto y assets de MudBlazor.
+- `Program.cs`: registro de `MudServices` con configuración de Snackbar.
+- `_Imports.razor`: agregados usings globales de MudBlazor y `DbTraffic.Infrastructure.SqlServer`.
+- `MainLayout.razor` y `NavMenu.razor`: reemplazados por implementaciones MudBlazor.
+
+### Removed
+- Dependencias CDN de Bootstrap 5.3.2, Bootstrap Icons y Bootstrap JS de `App.razor`.
 
 ### Changed
 - `MonitoringService` y `ExecutionService` ahora reciben `ILogger<SqlServerInstanceClient>` y lo pasan a las instancias de `SqlServerInstanceClient`.

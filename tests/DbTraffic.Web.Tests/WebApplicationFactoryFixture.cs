@@ -67,7 +67,9 @@ public sealed class WebApplicationFactoryFixture : WebApplicationFactory<Program
             }
         });
 
-        return base.CreateHost(builder);
+        var host = builder.Build();
+        host.StartAsync().GetAwaiter().GetResult();
+        return host;
     }
 
     private static bool IsDockerEngineAvailable()

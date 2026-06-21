@@ -35,6 +35,10 @@ public sealed class DbTrafficWebApplicationFactory : WebApplicationFactory<Progr
         {
             await _container.StartAsync();
             IsAvailable = true;
+
+            // Force the WebApplicationFactory to create the host and assign BaseUrl
+            // before any test reads it.
+            using var client = CreateDefaultClient();
         }
         catch (Exception)
         {
@@ -109,10 +113,22 @@ public sealed class DbTrafficWebApplicationFactory : WebApplicationFactory<Progr
         var addresses = server.Features.Get<IServerAddressesFeature>()?.Addresses;
         if (addresses is not null && addresses.Any())
         {
-            BaseUrl = addresses.First();
+            BaseUrl = NormalizeLocalhost(addresses.First());
         }
 
         return host;
+    }
+
+    private static string NormalizeLocalhost(string address)
+    {
+        // Playwright cannot navigate to http://[::]:port, so normalize to 127.0.0.1
+        if (address.Contains("[::]"))
+        {
+            var port = new Uri(address).Port;
+            return $"http://127.0.0.1:{port}";
+        }
+
+        return address;
     }
 
     private static int GetFreePort()

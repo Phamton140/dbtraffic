@@ -18,6 +18,12 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - `SqlServerInstanceClient`: corrección de casting en `MemoryPercent` (`System.Decimal` a `System.Double`) forzando `CAST(... AS FLOAT)` en la consulta.
 - `SqlServerInstanceClient`: casting a `FLOAT` en `CpuPercent` para garantizar compatibilidad de tipo de retorno con `reader.GetDouble`.
 
+### Added
+- Dashboard funcional en la página de inicio (`/`): muestra KPIs reales de instancias, procesos, ejecuciones, tasa de éxito, últimas ejecuciones y proceso más ejecutado.
+- Endpoint `GET /api/dashboard/summary` para obtener datos agregados del dashboard.
+- Modelos `DashboardSummary` y `DashboardExecution` en `DbTraffic.Shared`.
+- Test de integración `DashboardTests.Summary_Endpoint_Returns_Dashboard_Data`.
+
 ## [1.0.0] - 2026-06-20
 
 ### Added

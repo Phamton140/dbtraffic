@@ -120,6 +120,7 @@ app.MapRiskEndpoints();
 app.MapRecommendationEndpoints();
 app.MapMonitoringEndpoints();
 app.MapExecutionEndpoints();
+app.MapDashboardEndpoints();
 
 app.Run();
 

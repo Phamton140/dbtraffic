@@ -8,6 +8,8 @@ Muchas organizaciones ejecutan simultáneamente SQL Agent Jobs, procesos ETL, st
 
 DbTraffic actúa como un **controlador de tráfico para cargas de trabajo de bases de datos**: conoce qué procesos existen, qué objetos utilizan, qué recursos consumen, qué dependencias tienen y qué conflictos podrían generar, para recomendar decisiones antes de ejecutar un proceso.
 
+El dashboard de inicio muestra KPIs reales del entorno: instancias registradas, procesos, ejecuciones históricas, tasa de éxito y las últimas ejecuciones.
+
 ## Estado del proyecto
 
 - **Fase actual**: Fase 7 - Modernización UI/UX con MudBlazor.

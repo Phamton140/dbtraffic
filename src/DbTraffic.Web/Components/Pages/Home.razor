@@ -1,83 +1,148 @@
 ﻿@page "/"
+@using DbTraffic.Shared.Models
+@inject IHttpClientFactory HttpClientFactory
+@inject NavigationManager Navigation
 
 <PageTitle>DbTraffic - Dashboard</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6">
-    <MudText Typo="Typo.h4" Class="mb-1">DbTraffic</MudText>
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+    <MudText Typo="Typo.h4" Class="mb-1">Dashboard</MudText>
     <MudText Typo="Typo.body2" Class="mb-4">Controlador de tráfico para cargas de trabajo SQL Server.</MudText>
 
-    <MudGrid Spacing="2">
-        <MudItem xs="12" sm="6" md="4">
-            <MudCard Elevation="2" Style="height: 160px; position: relative; overflow: hidden;" Class="d-flex flex-column">
-                <MudIcon Icon="@Icons.Material.Filled.Warning" Color="Color.Primary" Style="position: absolute; right: -8px; top: -8px; font-size: 120px; opacity: 0.10; z-index: 0;" />
-                <MudCardContent Class="pa-3" Style="position: relative; z-index: 1;">
-                    <MudText Typo="Typo.subtitle1" Style="font-weight: 500;">Riesgo</MudText>
-                    <MudText Typo="Typo.caption">Simula ejecuciones y detecta conflictos.</MudText>
-                </MudCardContent>
-                <MudCardActions Class="mt-auto pt-0 px-3 pb-3" Style="position: relative; z-index: 1;">
-                    <MudButton Href="risk" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" FullWidth="true">Ir</MudButton>
-                </MudCardActions>
-            </MudCard>
-        </MudItem>
-        <MudItem xs="12" sm="6" md="4">
-            <MudCard Elevation="2" Style="height: 160px; position: relative; overflow: hidden;" Class="d-flex flex-column">
-                <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Color="Color.Secondary" Style="position: absolute; right: -8px; top: -8px; font-size: 120px; opacity: 0.10; z-index: 0;" />
-                <MudCardContent Class="pa-3" Style="position: relative; z-index: 1;">
-                    <MudText Typo="Typo.subtitle1" Style="font-weight: 500;">Recomendaciones</MudText>
-                    <MudText Typo="Typo.caption">Busca ventanas de bajo riesgo.</MudText>
-                </MudCardContent>
-                <MudCardActions Class="mt-auto pt-0 px-3 pb-3" Style="position: relative; z-index: 1;">
-                    <MudButton Href="recommendations" Variant="Variant.Filled" Color="Color.Secondary" Size="Size.Small" FullWidth="true">Buscar</MudButton>
-                </MudCardActions>
-            </MudCard>
-        </MudItem>
-        <MudItem xs="12" sm="6" md="4">
-            <MudCard Elevation="2" Style="height: 160px; position: relative; overflow: hidden;" Class="d-flex flex-column">
-                <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Color="Color.Success" Style="position: absolute; right: -8px; top: -8px; font-size: 120px; opacity: 0.10; z-index: 0;" />
-                <MudCardContent Class="pa-3" Style="position: relative; z-index: 1;">
-                    <MudText Typo="Typo.subtitle1" Style="font-weight: 500;">Monitoreo</MudText>
-                    <MudText Typo="Typo.caption">Métricas en tiempo real.</MudText>
-                </MudCardContent>
-                <MudCardActions Class="mt-auto pt-0 px-3 pb-3" Style="position: relative; z-index: 1;">
-                    <MudButton Href="monitoring" Variant="Variant.Filled" Color="Color.Success" Size="Size.Small" FullWidth="true">Ver</MudButton>
-                </MudCardActions>
-            </MudCard>
-        </MudItem>
-        <MudItem xs="12" sm="6" md="4">
-            <MudCard Elevation="2" Style="height: 160px; position: relative; overflow: hidden;" Class="d-flex flex-column">
-                <MudIcon Icon="@Icons.Material.Filled.Storage" Color="Color.Info" Style="position: absolute; right: -8px; top: -8px; font-size: 120px; opacity: 0.10; z-index: 0;" />
-                <MudCardContent Class="pa-3" Style="position: relative; z-index: 1;">
-                    <MudText Typo="Typo.subtitle1" Style="font-weight: 500;">Instancias</MudText>
-                    <MudText Typo="Typo.caption">Gestiona instancias SQL Server.</MudText>
-                </MudCardContent>
-                <MudCardActions Class="mt-auto pt-0 px-3 pb-3" Style="position: relative; z-index: 1;">
-                    <MudButton Href="instances" Variant="Variant.Outlined" Color="Color.Info" Size="Size.Small" FullWidth="true">Gestionar</MudButton>
-                </MudCardActions>
-            </MudCard>
-        </MudItem>
-        <MudItem xs="12" sm="6" md="4">
-            <MudCard Elevation="2" Style="height: 160px; position: relative; overflow: hidden;" Class="d-flex flex-column">
-                <MudIcon Icon="@Icons.Material.Filled.Repeat" Color="Color.Info" Style="position: absolute; right: -8px; top: -8px; font-size: 120px; opacity: 0.10; z-index: 0;" />
-                <MudCardContent Class="pa-3" Style="position: relative; z-index: 1;">
-                    <MudText Typo="Typo.subtitle1" Style="font-weight: 500;">Procesos</MudText>
-                    <MudText Typo="Typo.caption">Cataloga jobs y ETLs.</MudText>
-                </MudCardContent>
-                <MudCardActions Class="mt-auto pt-0 px-3 pb-3" Style="position: relative; z-index: 1;">
-                    <MudButton Href="processes" Variant="Variant.Outlined" Color="Color.Info" Size="Size.Small" FullWidth="true">Gestionar</MudButton>
-                </MudCardActions>
-            </MudCard>
-        </MudItem>
-        <MudItem xs="12" sm="6" md="4">
-            <MudCard Elevation="2" Style="height: 160px; position: relative; overflow: hidden;" Class="d-flex flex-column">
-                <MudIcon Icon="@Icons.Material.Filled.Search" Color="Color.Info" Style="position: absolute; right: -8px; top: -8px; font-size: 120px; opacity: 0.10; z-index: 0;" />
-                <MudCardContent Class="pa-3" Style="position: relative; z-index: 1;">
-                    <MudText Typo="Typo.subtitle1" Style="font-weight: 500;">Descubrimiento</MudText>
-                    <MudText Typo="Typo.caption">Descubre jobs y objetos.</MudText>
-                </MudCardContent>
-                <MudCardActions Class="mt-auto pt-0 px-3 pb-3" Style="position: relative; z-index: 1;">
-                    <MudButton Href="discovery" Variant="Variant.Outlined" Color="Color.Info" Size="Size.Small" FullWidth="true">Descubrir</MudButton>
-                </MudCardActions>
-            </MudCard>
-        </MudItem>
-    </MudGrid>
+    @if (_summary == null)
+    {
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+    }
+    else
+    {
+        <MudGrid Spacing="2" Class="mb-4">
+            <MudItem xs="12" sm="6" md="3">
+                <MudCard Elevation="2" Style="height: 120px; position: relative; overflow: hidden;" Class="d-flex flex-column">
+                    <MudIcon Icon="@Icons.Material.Filled.Storage" Color="Color.Info" Style="position: absolute; right: -8px; top: -8px; font-size: 100px; opacity: 0.10; z-index: 0;" />
+                    <MudCardContent Class="pa-3" Style="position: relative; z-index: 1;">
+                        <MudText Typo="Typo.caption">Instancias</MudText>
+                        <MudText Typo="Typo.h4" Style="font-weight: 600;">@_summary.TotalInstances</MudText>
+                    </MudCardContent>
+                    <MudCardActions Class="mt-auto pt-0 px-3 pb-3" Style="position: relative; z-index: 1;">
+                        <MudButton Href="instances" Variant="Variant.Text" Color="Color.Info" Size="Size.Small" FullWidth="true">Gestionar</MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudCard Elevation="2" Style="height: 120px; position: relative; overflow: hidden;" Class="d-flex flex-column">
+                    <MudIcon Icon="@Icons.Material.Filled.Repeat" Color="Color.Info" Style="position: absolute; right: -8px; top: -8px; font-size: 100px; opacity: 0.10; z-index: 0;" />
+                    <MudCardContent Class="pa-3" Style="position: relative; z-index: 1;">
+                        <MudText Typo="Typo.caption">Procesos</MudText>
+                        <MudText Typo="Typo.h4" Style="font-weight: 600;">@_summary.TotalProcesses</MudText>
+                    </MudCardContent>
+                    <MudCardActions Class="mt-auto pt-0 px-3 pb-3" Style="position: relative; z-index: 1;">
+                        <MudButton Href="processes" Variant="Variant.Text" Color="Color.Info" Size="Size.Small" FullWidth="true">Gestionar</MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudCard Elevation="2" Style="height: 120px; position: relative; overflow: hidden;" Class="d-flex flex-column">
+                    <MudIcon Icon="@Icons.Material.Filled.History" Color="Color.Primary" Style="position: absolute; right: -8px; top: -8px; font-size: 100px; opacity: 0.10; z-index: 0;" />
+                    <MudCardContent Class="pa-3" Style="position: relative; z-index: 1;">
+                        <MudText Typo="Typo.caption">Ejecuciones</MudText>
+                        <MudText Typo="Typo.h4" Style="font-weight: 600;">@_summary.TotalExecutions</MudText>
+                    </MudCardContent>
+                    <MudCardActions Class="mt-auto pt-0 px-3 pb-3" Style="position: relative; z-index: 1;">
+                        <MudButton Href="history" Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" FullWidth="true">Ver historial</MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudCard Elevation="2" Style="height: 120px; position: relative; overflow: hidden;" Class="d-flex flex-column">
+                    <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Style="position: absolute; right: -8px; top: -8px; font-size: 100px; opacity: 0.10; z-index: 0;" />
+                    <MudCardContent Class="pa-3" Style="position: relative; z-index: 1;">
+                        <MudText Typo="Typo.caption">Tasa de éxito</MudText>
+                        <MudText Typo="Typo.h4" Style="font-weight: 600;">@_summary.SuccessRate.ToString("F0")%</MudText>
+                    </MudCardContent>
+                    <MudCardActions Class="mt-auto pt-0 px-3 pb-3" Style="position: relative; z-index: 1;">
+                        <MudButton Href="monitoring" Variant="Variant.Text" Color="Color.Success" Size="Size.Small" FullWidth="true">Monitoreo</MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+
+        <MudGrid Spacing="2">
+            <MudItem xs="12" md="8">
+                <MudCard Elevation="2">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">Últimas ejecuciones</MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        @if (_summary.LatestExecutions.Count == 0)
+                        {
+                            <MudText Typo="Typo.body2">No hay ejecuciones registradas.</MudText>
+                        }
+                        else
+                        {
+                            <MudTable Items="_summary.LatestExecutions" Dense="true" Class="compact-table" Breakpoint="Breakpoint.Sm" Elevation="0">
+                                <HeaderContent>
+                                    <MudTh>Proceso</MudTh>
+                                    <MudTh>Instancia</MudTh>
+                                    <MudTh>Inicio</MudTh>
+                                    <MudTh>Estado</MudTh>
+                                    <MudTh>Duración</MudTh>
+                                </HeaderContent>
+                                <RowTemplate>
+                                    <MudTd DataLabel="Proceso">@context.ProcessName</MudTd>
+                                    <MudTd DataLabel="Instancia">@context.InstanceName</MudTd>
+                                    <MudTd DataLabel="Inicio">@context.StartedAt.ToString("g")</MudTd>
+                                    <MudTd DataLabel="Estado"><MudChip T="string" Size="Size.Small" Color="GetStatusColor(context.Status)" Class="status-chip">@context.Status</MudChip></MudTd>
+                                    <MudTd DataLabel="Duración">@(context.DurationMinutes.HasValue ? $"{context.DurationMinutes} min" : "-")</MudTd>
+                                </RowTemplate>
+                            </MudTable>
+                        }
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+            <MudItem xs="12" md="4">
+                <MudCard Elevation="2" Style="height: 100%;">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">Resumen</MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudText Typo="Typo.body2"><strong>Última ejecución:</strong> @(_summary.LastExecutionAt.HasValue ? _summary.LastExecutionAt.Value.ToString("g") : "-")</MudText>
+                        <MudText Typo="Typo.body2" Class="mt-2"><strong>Proceso más ejecutado:</strong> @_summary.TopProcessByExecutions (@_summary.TopProcessExecutionCount)</MudText>
+                        <MudText Typo="Typo.body2" Class="mt-2"><strong>Tasa de fallo:</strong> @_summary.FailureRate.ToString("F0")%</MudText>
+                        <MudDivider Class="my-3" />
+                        <MudButton Href="risk" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">Analizar riesgo</MudButton>
+                        <MudButton Href="recommendations" Variant="Variant.Outlined" Color="Color.Secondary" FullWidth="true" Class="mt-2">Buscar ventana</MudButton>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+    }
 </MudContainer>
+
+@code {
+    private DashboardSummary? _summary;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSummaryAsync();
+    }
+
+    private async Task LoadSummaryAsync()
+    {
+        var client = HttpClientFactory.CreateClient();
+        client.BaseAddress = new Uri(Navigation.BaseUri);
+        _summary = await client.GetFromJsonAsync<DashboardSummary>("api/dashboard/summary");
+    }
+
+    private static Color GetStatusColor(string status) => status switch
+    {
+        "Completed" => Color.Success,
+        "Failed" => Color.Error,
+        "Cancelled" => Color.Warning,
+        "Running" => Color.Primary,
+        _ => Color.Default
+    };
+}

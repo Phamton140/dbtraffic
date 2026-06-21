@@ -1,5 +1,7 @@
 using System.Text;
 using Dapper;
+using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -9,20 +11,38 @@ public sealed class DatabaseInitializer
 {
     private readonly IDbConnectionFactory _connectionFactory;
     private readonly IHostEnvironment _environment;
+    private readonly IConfiguration _configuration;
     private readonly ILogger<DatabaseInitializer> _logger;
 
     public DatabaseInitializer(
         IDbConnectionFactory connectionFactory,
         IHostEnvironment environment,
+        IConfiguration configuration,
         ILogger<DatabaseInitializer> logger)
     {
         _connectionFactory = connectionFactory;
         _environment = environment;
+        _configuration = configuration;
         _logger = logger;
     }
 
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
+        var connectionString = _configuration.GetConnectionString("DbTraffic")
+            ?? throw new InvalidOperationException("Connection string 'DbTraffic' is not configured.");
+
+        var builder = new SqlConnectionStringBuilder(connectionString);
+        var databaseName = builder.InitialCatalog;
+
+        if (string.IsNullOrWhiteSpace(databaseName))
+        {
+            _logger.LogWarning("The DbTraffic connection string does not specify an InitialCatalog/Database. Skipping automatic database creation.");
+        }
+        else if (!IsSystemDatabase(databaseName))
+        {
+            await EnsureDatabaseExistsAsync(connectionString, databaseName, cancellationToken);
+        }
+
         if (await SchemaExistsAsync(cancellationToken))
         {
             _logger.LogInformation("Database schema already exists. Skipping initialization.");
@@ -44,25 +64,59 @@ public sealed class DatabaseInitializer
         _logger.LogInformation("Database schema applied successfully.");
     }
 
+    private static bool IsSystemDatabase(string databaseName)
+    {
+        return string.Equals(databaseName, "master", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(databaseName, "tempdb", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(databaseName, "model", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(databaseName, "msdb", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private async Task EnsureDatabaseExistsAsync(string connectionString, string databaseName, CancellationToken cancellationToken)
+    {
+        var masterConnectionString = new SqlConnectionStringBuilder(connectionString)
+        {
+            InitialCatalog = "master"
+        }.ConnectionString;
+
+        const string checkDatabaseSql = @"
+            SELECT COUNT(*)
+            FROM sys.databases
+            WHERE name = @DatabaseName;";
+
+        using var masterConnection = new SqlConnection(masterConnectionString);
+        var exists = await masterConnection.ExecuteScalarAsync<int>(
+            new CommandDefinition(checkDatabaseSql, new { DatabaseName = databaseName }, cancellationToken: cancellationToken));
+
+        if (exists > 0)
+        {
+            _logger.LogInformation("Database {DatabaseName} already exists.", databaseName);
+            return;
+        }
+
+        _logger.LogInformation("Creating database {DatabaseName}...", databaseName);
+
+        var createDatabaseSql = $@"
+            CREATE DATABASE [{databaseName.Replace("]", "]]")}];";
+
+        await masterConnection.ExecuteAsync(
+            new CommandDefinition(createDatabaseSql, cancellationToken: cancellationToken));
+
+        _logger.LogInformation("Database {DatabaseName} created successfully.", databaseName);
+    }
+
     private async Task<bool> SchemaExistsAsync(CancellationToken cancellationToken)
     {
-        try
-        {
-            const string sql = @"
-                SELECT COUNT(*)
-                FROM sys.tables t
-                INNER JOIN sys.schemas s ON t.schema_id = s.schema_id
-                WHERE s.name = 'catalog' AND t.name = 'Instances';";
+        const string sql = @"
+            SELECT COUNT(*)
+            FROM sys.tables t
+            INNER JOIN sys.schemas s ON t.schema_id = s.schema_id
+            WHERE s.name = 'catalog' AND t.name = 'Instances';";
 
-            using var connection = _connectionFactory.CreateConnection();
-            var count = await connection.ExecuteScalarAsync<int>(sql);
-            return count > 0;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Could not verify database schema existence. Will attempt to apply schema.");
-            return false;
-        }
+        using var connection = _connectionFactory.CreateConnection();
+        var count = await connection.ExecuteScalarAsync<int>(
+            new CommandDefinition(sql, cancellationToken: cancellationToken));
+        return count > 0;
     }
 
     private string FindSchemaPath()

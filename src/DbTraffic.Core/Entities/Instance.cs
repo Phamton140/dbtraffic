@@ -28,5 +28,12 @@ public sealed class Instance
         {
             throw new DomainException("Connection string is required.");
         }
+
+        var trimmed = ConnectionString.Trim();
+        if (!trimmed.Contains("Server=", StringComparison.OrdinalIgnoreCase)
+            && !trimmed.Contains("Data Source=", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new DomainException("Connection string must include a 'Server' or 'Data Source' component.");
+        }
     }
 }

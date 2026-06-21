@@ -1,5 +1,7 @@
 using DbTraffic.Core.Entities;
+using DbTraffic.Core.Exceptions;
 using DbTraffic.Core.Repositories;
+using Microsoft.Data.SqlClient;
 
 namespace DbTraffic.Web.Endpoints;
 
@@ -23,6 +25,11 @@ public static class InstanceEndpoints
 
         group.MapPost("/", async (Instance instance, IInstanceRepository repository, CancellationToken cancellationToken) =>
         {
+            if (!TryValidateConnectionString(instance.ConnectionString, out var validationError))
+            {
+                return Results.BadRequest(new { Detail = validationError });
+            }
+
             var created = await repository.CreateAsync(instance, cancellationToken);
             return Results.Created($"/api/instances/{created.Id}", created);
         });
@@ -32,6 +39,11 @@ public static class InstanceEndpoints
             if (id != instance.Id)
             {
                 return Results.BadRequest("Id mismatch.");
+            }
+
+            if (!TryValidateConnectionString(instance.ConnectionString, out var validationError))
+            {
+                return Results.BadRequest(new { Detail = validationError });
             }
 
             await repository.UpdateAsync(instance, cancellationToken);
@@ -45,5 +57,20 @@ public static class InstanceEndpoints
         });
 
         return app;
+    }
+
+    private static bool TryValidateConnectionString(string connectionString, out string errorMessage)
+    {
+        try
+        {
+            _ = new SqlConnectionStringBuilder(connectionString);
+            errorMessage = string.Empty;
+            return true;
+        }
+        catch (ArgumentException ex)
+        {
+            errorMessage = $"Invalid connection string: {ex.Message}";
+            return false;
+        }
     }
 }

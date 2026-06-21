@@ -8,6 +8,14 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 ## [Unreleased]
 
 ### Fixed
+- `Routes.razor`: se agregó `@rendermode InteractiveServer` para que todo el árbol de componentes de la aplicación (incluyendo `MainLayout` y las páginas) se ejecute dentro del mismo circuito interactivo de Blazor Server. Esto corrige el problema por el que los clics en botones, selects y otros componentes MudBlazor no respondían.
+- `MainLayout.razor`: se movió `<MudPopoverProvider />` desde `App.razor` al layout principal. En Blazor Server con `InteractiveServer`, el provider debe estar dentro del circuito interactivo; de lo contrario, la UI se rompe al interactuar con componentes MudBlazor.
+- `MainLayout.razor`: se movió la creación del timer de actualización de estado SQL a `OnAfterRender` para evitar fugas durante el prerendering.
+- `DatabaseInitializer`: ya no silencia errores de inicialización. Ahora conecta primero a `master` para crear la base de datos `DbTraffic` si no existe, y luego aplica el esquema. Si falla, la aplicación se detiene con un error claro en lugar de arrancar en un estado roto.
+- `InstanceEndpoints`: validación del formato del connection string con `SqlConnectionStringBuilder` en los endpoints `POST` y `PUT`. Devuelve `400 Bad Request` con el mensaje de error del parser de SQL Server.
+- `Instance.Validate()`: ahora verifica que el connection string incluya al menos un componente `Server=` o `Data Source=`.
+
+### Fixed
 - `SqlServerInstanceClient.GetInstanceMetricsAsync`: corrección del error `Invalid column name 'timestamp'` al incluir `[timestamp]` en el SELECT interno de `sys.dm_os_ring_buffers`.
 - `SqlServerInstanceClient.GetInstanceMetricsAsync`: separación de métricas en consultas independientes (ActiveRequests, BlockingSessions, WaitTimeMs, CpuPercent, MemoryPercent).
 - Degradación elegente en `SqlServerInstanceClient`: si una métrica falla, se registra una advertencia y se devuelve `0` sin lanzar excepción ni detener `MonitoringWorker`.
@@ -19,6 +27,8 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - `SqlServerInstanceClient`: casting a `FLOAT` en `CpuPercent` para garantizar compatibilidad de tipo de retorno con `reader.GetDouble`.
 
 ### Added
+- Tests unitarios `InstanceTests` para validar reglas de dominio de instancias.
+- Tests de integración `DatabaseInitializerTests` que verifican la creación automática de la base de datos y del esquema en un contenedor SQL Server limpio.
 - Dashboard funcional en la página de inicio (`/`): muestra KPIs reales de instancias, procesos, ejecuciones, tasa de éxito, últimas ejecuciones y proceso más ejecutado.
 - Endpoint `GET /api/dashboard/summary` para obtener datos agregados del dashboard.
 - Modelos `DashboardSummary` y `DashboardExecution` en `DbTraffic.Shared`.
@@ -28,6 +38,8 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ### Changed
 - `Instances.razor`: el snackbar de error ahora muestra el mensaje detallado devuelto por el servidor cuando falla la creación de una instancia.
+- Páginas Blazor (`Instances.razor`, `Processes.razor`, `Discovery.razor`, `History.razor`, `Home.razor`, `Monitoring.razor`, `Recommendations.razor`, `RiskAnalysis.razor`): se quitó `@rendermode InteractiveServer` de cada página porque el rendermode interactivo ahora se aplica globalmente desde `Routes.razor`.
+- Tests de integración de `DbTraffic.Web.Tests` ahora usan un `WebApplicationFactoryFixture` compartido basado en Testcontainers MsSql, con detección rápida de Docker para saltar los tests cuando no hay motor de contenedores disponible (por ejemplo, entornos de desarrollo locales sin Docker).
 
 ## [1.0.0] - 2026-06-20
 

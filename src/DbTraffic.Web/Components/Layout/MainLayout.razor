@@ -61,15 +61,22 @@
     protected override async Task OnInitializedAsync()
     {
         await RefreshSqlStatusAsync();
-        _timer = new Timer(async _ =>
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender && _timer is null)
         {
-            await InvokeAsync(async () =>
+            _timer = new Timer(async _ =>
             {
-                CurrentTime = DateTime.Now.ToString("g");
-                await RefreshSqlStatusAsync();
-                StateHasChanged();
-            });
-        }, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
+                await InvokeAsync(async () =>
+                {
+                    CurrentTime = DateTime.Now.ToString("g");
+                    await RefreshSqlStatusAsync();
+                    StateHasChanged();
+                });
+            }, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
+        }
     }
 
     private async Task RefreshSqlStatusAsync()

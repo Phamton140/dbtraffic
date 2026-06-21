@@ -112,6 +112,7 @@
 | F7-012 | Validar visualmente con tests E2E y pruebas de carga | Media | Completado | 7 |
 | F7-013 | Release 1.0.0 (tag importante de cierre de Q1) | Alta | Completado | 7 |
 | F7-014 | Dashboard funcional con KPIs reales (instancias, procesos, ejecuciones, tasa de éxito) | Alta | Completado | 7 |
+| F7-015 | Estabilizar pipeline CI para `DbTraffic.Web.Tests` con Testcontainers MsSql | Alta | Completado | 7 |
 
 ## Backlog futuro (post-MVP)
 

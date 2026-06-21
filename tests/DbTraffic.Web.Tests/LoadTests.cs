@@ -1,13 +1,13 @@
 using System.Diagnostics;
-using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace DbTraffic.Web.Tests;
 
-public class LoadTests : IClassFixture<WebApplicationFactory<Program>>
+[Collection("Web integration collection")]
+public class LoadTests
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly WebApplicationFactoryFixture _factory;
 
-    public LoadTests(WebApplicationFactory<Program> factory)
+    public LoadTests(WebApplicationFactoryFixture factory)
     {
         _factory = factory;
     }
@@ -15,6 +15,11 @@ public class LoadTests : IClassFixture<WebApplicationFactory<Program>>
     [Fact]
     public async Task Health_Endpoint_Handles_Concurrent_Requests()
     {
+        if (!_factory.IsAvailable)
+        {
+            return;
+        }
+
         const int requestCount = 100;
         const int maxAverageMilliseconds = 500;
 

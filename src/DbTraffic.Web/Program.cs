@@ -11,10 +11,13 @@ using DbTraffic.Shared.Models;
 using DbTraffic.Web.Components;
 using DbTraffic.Web.Endpoints;
 using DbTraffic.Web.Middleware;
+using Microsoft.AspNetCore.Components.Server;
 using MudBlazor;
 using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.Configure<CircuitOptions>(options => options.DetailedErrors = true);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()

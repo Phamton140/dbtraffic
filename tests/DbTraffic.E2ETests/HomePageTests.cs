@@ -25,9 +25,9 @@ public class HomePageTests
         var page = await browser.NewPageAsync();
 
         await page.GotoAsync(_factory.BaseUrl);
-        await page.WaitForSelectorAsync("h1");
+        await page.WaitForSelectorAsync("h4");
 
-        var title = await page.InnerTextAsync("h1");
+        var title = await page.InnerTextAsync("h4");
         Assert.Contains("DbTraffic", title);
     }
 
@@ -47,7 +47,7 @@ public class HomePageTests
         await page.ClickAsync("a[href='instances']");
         await page.WaitForURLAsync("**/instances");
 
-        var heading = await page.InnerTextAsync("h1");
+        var heading = await page.InnerTextAsync("h4");
         Assert.Contains("Instancias", heading);
     }
 }

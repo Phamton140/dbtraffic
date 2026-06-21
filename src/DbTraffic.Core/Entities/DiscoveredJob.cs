@@ -8,6 +8,11 @@ public sealed class DiscoveredJob
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
     public bool Enabled { get; set; }
+    public int? EstimatedDurationMinutes { get; set; }
+    public DateTime? LastRunDate { get; set; }
+    public DateTime? NextRunDate { get; set; }
     public DateTime DiscoveredAt { get; init; } = DateTime.UtcNow;
     public Guid? AssociatedProcessId { get; set; }
+
+    public List<DiscoveredJobSchedule> Schedules { get; set; } = new();
 }

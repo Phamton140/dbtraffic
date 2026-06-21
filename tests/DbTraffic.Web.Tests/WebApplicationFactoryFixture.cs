@@ -55,6 +55,8 @@ public sealed class WebApplicationFactoryFixture : WebApplicationFactory<Program
             });
         }
 
+        builder.UseEnvironment("IntegrationTesting");
+
         return base.CreateHost(builder);
     }
 

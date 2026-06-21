@@ -28,6 +28,14 @@ IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'metrics')
     EXEC('CREATE SCHEMA metrics');
 GO
 
+-- Tabla: Registro de migraciones aplicadas
+CREATE TABLE catalog.SchemaMigrations (
+    Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+    MigrationName NVARCHAR(255) NOT NULL UNIQUE,
+    AppliedAt DATETIME2 NOT NULL DEFAULT GETUTCDATE()
+);
+GO
+
 -- Tabla: Instancias objetivo
 CREATE TABLE catalog.Instances (
     Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
@@ -97,15 +105,43 @@ GO
 CREATE TABLE catalog.DiscoveredJobs (
     Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     InstanceId UNIQUEIDENTIFIER NOT NULL,
-    JobId UNIQUEIDENTIFIER NOT NULL, -- job_id de msdb.dbo.sysjobs
+    JobId UNIQUEIDENTIFIER NOT NULL,
     Name NVARCHAR(200) NOT NULL,
     Description NVARCHAR(500) NULL,
     Enabled BIT NOT NULL,
+    EstimatedDurationMinutes INT NULL,
+    LastRunDate DATETIME2 NULL,
+    NextRunDate DATETIME2 NULL,
     DiscoveredAt DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
     AssociatedProcessId UNIQUEIDENTIFIER NULL,
     CONSTRAINT FK_DiscoveredJobs_Instances FOREIGN KEY (InstanceId) REFERENCES catalog.Instances(Id),
     CONSTRAINT FK_DiscoveredJobs_Processes FOREIGN KEY (AssociatedProcessId) REFERENCES catalog.Processes(Id)
 );
+GO
+
+CREATE UNIQUE INDEX IX_DiscoveredJobs_Instance_JobId ON catalog.DiscoveredJobs(InstanceId, JobId);
+GO
+
+CREATE TABLE catalog.DiscoveredJobSchedules (
+    Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+    DiscoveredJobId UNIQUEIDENTIFIER NOT NULL,
+    ScheduleId INT NOT NULL,
+    Name NVARCHAR(200) NOT NULL,
+    FrequencyType INT NOT NULL,
+    FrequencyInterval INT NOT NULL,
+    FrequencySubdayType INT NOT NULL,
+    FrequencySubdayInterval INT NOT NULL,
+    FrequencyRelativeInterval INT NOT NULL,
+    FrequencyRecurrenceFactor INT NOT NULL,
+    ActiveStartTime TIME NOT NULL,
+    ActiveEndTime TIME NOT NULL,
+    Description NVARCHAR(500) NOT NULL,
+    DiscoveredAt DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+    CONSTRAINT FK_DiscoveredJobSchedules_DiscoveredJobs FOREIGN KEY (DiscoveredJobId) REFERENCES catalog.DiscoveredJobs(Id) ON DELETE CASCADE
+);
+GO
+
+CREATE INDEX IX_DiscoveredJobSchedules_DiscoveredJobId ON catalog.DiscoveredJobSchedules(DiscoveredJobId);
 GO
 
 CREATE UNIQUE INDEX IX_DiscoveredJobs_Instance_JobId ON catalog.DiscoveredJobs(InstanceId, JobId);

@@ -54,6 +54,9 @@
                             <HeaderContent>
                                 <MudTh>Nombre</MudTh>
                                 <MudTh>Habilitado</MudTh>
+                                <MudTh>Duración estimada</MudTh>
+                                <MudTh>Última ejecución</MudTh>
+                                <MudTh>Horarios</MudTh>
                                 <MudTh>Proceso asociado</MudTh>
                                 <MudTh>Asociar</MudTh>
                             </HeaderContent>
@@ -69,6 +72,20 @@
                                         <MudChip T="string" Size="Size.Small" Color="Color.Default" Class="status-chip">No</MudChip>
                                     }
                                 </MudTd>
+                                <MudTd DataLabel="Duración estimada">@FormatDuration(context.EstimatedDurationMinutes)</MudTd>
+                                <MudTd DataLabel="Última ejecución">@(context.LastRunDate.HasValue ? context.LastRunDate.Value.ToString("g") : "-")</MudTd>
+                                <MudTd DataLabel="Horarios">
+                                    @if (context.Schedules.Any())
+                                    {
+                                        <MudTooltip Text="@string.Join("\n", context.Schedules.Select(s => s.Description))">
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Info" Class="status-chip">@context.Schedules.Count horario(s)</MudChip>
+                                        </MudTooltip>
+                                    }
+                                    else
+                                    {
+                                        <MudText Typo="Typo.caption">Sin horario</MudText>
+                                    }
+                                </MudTd>
                                 <MudTd DataLabel="Proceso asociado">@GetAssociatedProcessName(context.AssociatedProcessId)</MudTd>
                                 <MudTd DataLabel="Asociar">
                                     <MudSelect T="Guid?" Value="context.AssociatedProcessId" ValueChanged="v => AssociateJob(context.Id, v)" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true">
@@ -80,6 +97,21 @@
                                     </MudSelect>
                                 </MudTd>
                             </RowTemplate>
+                            <ChildRowContent>
+                                @if (context.Schedules.Any())
+                                {
+                                    <MudTr>
+                                        <MudTd colspan="7" Class="pa-2" Style="background-color: #F5F7FA;">
+                                            <MudText Typo="Typo.subtitle2" Class="mb-2">Horarios de ejecución</MudText>
+                                            @foreach (var schedule in context.Schedules)
+                                            {
+                                                <MudText Typo="Typo.caption">• @schedule.Description</MudText>
+                                                <br />
+                                            }
+                                        </MudTd>
+                                    </MudTr>
+                                }
+                            </ChildRowContent>
                         </MudTable>
                     }
                 </MudTabPanel>
@@ -159,6 +191,15 @@
     {
         if (!processId.HasValue) return "Sin asociar";
         return _processes?.FirstOrDefault(p => p.Id == processId.Value)?.Name ?? "Desconocido";
+    }
+
+    private static string FormatDuration(int? minutes)
+    {
+        if (!minutes.HasValue || minutes.Value == 0) return "-";
+        if (minutes.Value < 60) return $"{minutes.Value} min";
+        var hours = minutes.Value / 60;
+        var remainingMinutes = minutes.Value % 60;
+        return remainingMinutes == 0 ? $"{hours} h" : $"{hours} h {remainingMinutes} min";
     }
 
     private async Task AssociateJob(Guid jobId, Guid? processId)

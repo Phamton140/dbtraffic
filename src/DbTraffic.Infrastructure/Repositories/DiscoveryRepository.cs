@@ -18,14 +18,27 @@ public sealed class DiscoveryRepository : IDiscoveryRepository
     public async Task<IReadOnlyList<DiscoveredJob>> GetJobsByInstanceAsync(Guid instanceId, CancellationToken cancellationToken = default)
     {
         const string sql = @"
-            SELECT Id, InstanceId, JobId, Name, Description, Enabled, DiscoveredAt, AssociatedProcessId
+            SELECT Id, InstanceId, JobId, Name, Description, Enabled, EstimatedDurationMinutes, LastRunDate, NextRunDate, DiscoveredAt, AssociatedProcessId
             FROM catalog.DiscoveredJobs
             WHERE InstanceId = @InstanceId
             ORDER BY Name;";
 
+        const string schedulesSql = @"
+            SELECT Id, DiscoveredJobId, ScheduleId, Name, FrequencyType, FrequencyInterval, FrequencySubdayType, FrequencySubdayInterval, FrequencyRelativeInterval, FrequencyRecurrenceFactor, ActiveStartTime, ActiveEndTime, Description, DiscoveredAt
+            FROM catalog.DiscoveredJobSchedules
+            WHERE DiscoveredJobId IN (SELECT Id FROM catalog.DiscoveredJobs WHERE InstanceId = @InstanceId)
+            ORDER BY DiscoveredJobId, ScheduleId;";
+
         using var connection = _connectionFactory.CreateConnection();
-        var jobs = await connection.QueryAsync<DiscoveredJob>(sql, new { InstanceId = instanceId });
-        return jobs.ToList();
+        var jobs = (await connection.QueryAsync<DiscoveredJob>(sql, new { InstanceId = instanceId })).ToList();
+        var schedules = (await connection.QueryAsync<DiscoveredJobSchedule>(schedulesSql, new { InstanceId = instanceId })).ToList();
+
+        foreach (var job in jobs)
+        {
+            job.Schedules = schedules.Where(s => s.DiscoveredJobId == job.Id).ToList();
+        }
+
+        return jobs;
     }
 
     public async Task<IReadOnlyList<DiscoveredObject>> GetObjectsByInstanceAsync(Guid instanceId, CancellationToken cancellationToken = default)
@@ -55,11 +68,18 @@ public sealed class DiscoveryRepository : IDiscoveryRepository
             SET Name = @Name,
                 Description = @Description,
                 Enabled = @Enabled,
+                EstimatedDurationMinutes = @EstimatedDurationMinutes,
+                LastRunDate = @LastRunDate,
+                NextRunDate = @NextRunDate,
                 DiscoveredAt = @DiscoveredAt
             WHERE Id = @Id;";
         const string insertSql = @"
-            INSERT INTO catalog.DiscoveredJobs (Id, InstanceId, JobId, Name, Description, Enabled, DiscoveredAt, AssociatedProcessId)
-            VALUES (@Id, @InstanceId, @JobId, @Name, @Description, @Enabled, @DiscoveredAt, @AssociatedProcessId);";
+            INSERT INTO catalog.DiscoveredJobs (Id, InstanceId, JobId, Name, Description, Enabled, EstimatedDurationMinutes, LastRunDate, NextRunDate, DiscoveredAt, AssociatedProcessId)
+            VALUES (@Id, @InstanceId, @JobId, @Name, @Description, @Enabled, @EstimatedDurationMinutes, @LastRunDate, @NextRunDate, @DiscoveredAt, @AssociatedProcessId);";
+        const string deleteSchedulesSql = "DELETE FROM catalog.DiscoveredJobSchedules WHERE DiscoveredJobId = @DiscoveredJobId;";
+        const string insertScheduleSql = @"
+            INSERT INTO catalog.DiscoveredJobSchedules (Id, DiscoveredJobId, ScheduleId, Name, FrequencyType, FrequencyInterval, FrequencySubdayType, FrequencySubdayInterval, FrequencyRelativeInterval, FrequencyRecurrenceFactor, ActiveStartTime, ActiveEndTime, Description, DiscoveredAt)
+            VALUES (@Id, @DiscoveredJobId, @ScheduleId, @Name, @FrequencyType, @FrequencyInterval, @FrequencySubdayType, @FrequencySubdayInterval, @FrequencyRelativeInterval, @FrequencyRecurrenceFactor, @ActiveStartTime, @ActiveEndTime, @Description, @DiscoveredAt);";
 
         using var connection = _connectionFactory.CreateConnection();
         connection.Open();
@@ -85,6 +105,18 @@ public sealed class DiscoveryRepository : IDiscoveryRepository
                 else
                 {
                     await connection.ExecuteAsync(insertSql, job, transaction);
+                }
+
+                await connection.ExecuteAsync(deleteSchedulesSql, new { DiscoveredJobId = job.Id }, transaction);
+
+                foreach (var schedule in job.Schedules)
+                {
+                    schedule.DiscoveredJobId = job.Id;
+                }
+
+                if (job.Schedules.Count > 0)
+                {
+                    await connection.ExecuteAsync(insertScheduleSql, job.Schedules, transaction);
                 }
             }
 

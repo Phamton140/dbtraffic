@@ -43,25 +43,28 @@ public sealed class DatabaseInitializer
             await EnsureDatabaseExistsAsync(connectionString, databaseName, cancellationToken);
         }
 
-        if (await SchemaExistsAsync(cancellationToken))
+        if (!await SchemaExistsAsync(cancellationToken))
         {
-            _logger.LogInformation("Database schema already exists. Skipping initialization.");
-            return;
+            _logger.LogInformation("Database schema not found. Applying schema.sql...");
+
+            var schemaPath = FindSchemaPath();
+            var script = await File.ReadAllTextAsync(schemaPath, cancellationToken);
+            var batches = SplitBatches(script);
+
+            using var connection = _connectionFactory.CreateConnection();
+            foreach (var batch in batches)
+            {
+                await connection.ExecuteAsync(batch);
+            }
+
+            _logger.LogInformation("Database schema applied successfully.");
+        }
+        else
+        {
+            _logger.LogInformation("Database schema already exists. Skipping schema.sql.");
         }
 
-        _logger.LogInformation("Database schema not found. Applying schema.sql...");
-
-        var schemaPath = FindSchemaPath();
-        var script = await File.ReadAllTextAsync(schemaPath, cancellationToken);
-        var batches = SplitBatches(script);
-
-        using var connection = _connectionFactory.CreateConnection();
-        foreach (var batch in batches)
-        {
-            await connection.ExecuteAsync(batch);
-        }
-
-        _logger.LogInformation("Database schema applied successfully.");
+        await ApplyPendingMigrationsAsync(cancellationToken);
     }
 
     private static bool IsSystemDatabase(string databaseName)
@@ -119,6 +122,89 @@ public sealed class DatabaseInitializer
         return count > 0;
     }
 
+    private async Task ApplyPendingMigrationsAsync(CancellationToken cancellationToken)
+    {
+        var migrationsDirectory = FindMigrationsDirectory();
+        if (!Directory.Exists(migrationsDirectory))
+        {
+            _logger.LogInformation("No migrations directory found. Skipping migrations.");
+            return;
+        }
+
+        await EnsureMigrationsTableAsync(cancellationToken).ConfigureAwait(false);
+
+        var appliedMigrations = await GetAppliedMigrationsAsync(cancellationToken).ConfigureAwait(false);
+        var migrationFiles = Directory
+            .GetFiles(migrationsDirectory, "*.sql")
+            .OrderBy(f => f, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        using var connection = _connectionFactory.CreateConnection();
+        foreach (var file in migrationFiles)
+        {
+            var migrationName = Path.GetFileName(file);
+            if (appliedMigrations.Contains(migrationName))
+            {
+                _logger.LogDebug("Migration {MigrationName} already applied. Skipping.", migrationName);
+                continue;
+            }
+
+            _logger.LogInformation("Applying migration {MigrationName}...", migrationName);
+
+            var script = await File.ReadAllTextAsync(file, cancellationToken).ConfigureAwait(false);
+            var batches = SplitBatches(script);
+
+            connection.Open();
+            using var transaction = connection.BeginTransaction();
+            try
+            {
+                foreach (var batch in batches)
+                {
+                    await connection.ExecuteAsync(batch, transaction: transaction).ConfigureAwait(false);
+                }
+
+                await connection.ExecuteAsync(
+                    "INSERT INTO catalog.SchemaMigrations (MigrationName) VALUES (@MigrationName);",
+                    new { MigrationName = migrationName },
+                    transaction).ConfigureAwait(false);
+
+                transaction.Commit();
+                _logger.LogInformation("Migration {MigrationName} applied successfully.", migrationName);
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+        }
+    }
+
+    private async Task EnsureMigrationsTableAsync(CancellationToken cancellationToken)
+    {
+        const string sql = @"
+            IF NOT EXISTS (SELECT * FROM sys.tables t INNER JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE s.name = 'catalog' AND t.name = 'SchemaMigrations')
+            BEGIN
+                CREATE TABLE catalog.SchemaMigrations (
+                    Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+                    MigrationName NVARCHAR(255) NOT NULL UNIQUE,
+                    AppliedAt DATETIME2 NOT NULL DEFAULT GETUTCDATE()
+                );
+            END";
+
+        using var connection = _connectionFactory.CreateConnection();
+        await connection.ExecuteAsync(new CommandDefinition(sql, cancellationToken: cancellationToken)).ConfigureAwait(false);
+    }
+
+    private async Task<HashSet<string>> GetAppliedMigrationsAsync(CancellationToken cancellationToken)
+    {
+        const string sql = "SELECT MigrationName FROM catalog.SchemaMigrations;";
+
+        using var connection = _connectionFactory.CreateConnection();
+        var names = await connection.QueryAsync<string>(
+            new CommandDefinition(sql, cancellationToken: cancellationToken)).ConfigureAwait(false);
+        return names.ToHashSet(StringComparer.OrdinalIgnoreCase);
+    }
+
     private string FindSchemaPath()
     {
         var contentRoot = _environment.ContentRootPath;
@@ -142,6 +228,31 @@ public sealed class DatabaseInitializer
         }
 
         throw new FileNotFoundException("Could not find database/schema.sql. Ensure the database schema is applied manually.");
+    }
+
+    private string FindMigrationsDirectory()
+    {
+        var contentRoot = _environment.ContentRootPath;
+        var candidates = new[]
+        {
+            Path.Combine(contentRoot, "..", "..", "database", "migrations"),
+            Path.Combine(contentRoot, "..", "database", "migrations"),
+            Path.Combine(contentRoot, "database", "migrations"),
+            Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "database", "migrations"),
+            Path.Combine(Directory.GetCurrentDirectory(), "..", "database", "migrations"),
+            Path.Combine(Directory.GetCurrentDirectory(), "database", "migrations")
+        };
+
+        foreach (var candidate in candidates)
+        {
+            var fullPath = Path.GetFullPath(candidate);
+            if (Directory.Exists(fullPath))
+            {
+                return fullPath;
+            }
+        }
+
+        return candidates.Last();
     }
 
     private static IReadOnlyList<string> SplitBatches(string script)

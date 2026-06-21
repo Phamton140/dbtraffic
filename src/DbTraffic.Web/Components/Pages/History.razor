@@ -33,7 +33,7 @@
                         </CardHeaderActions>
                     </MudCardHeader>
                     <MudCardContent>
-                        <MudTable Items="_executions" Hover="true" Striped="true" Bordered="true" Breakpoint="Breakpoint.Sm" Dense="true">
+                        <MudTable Items="_executions" Hover="true" Striped="true" Bordered="true" Breakpoint="Breakpoint.Sm" Dense="true" Class="compact-table">
                             <HeaderContent>
                                 <MudTh>Inicio</MudTh>
                                 <MudTh>Instancia</MudTh>
@@ -48,7 +48,7 @@
                                 <MudTd DataLabel="Proceso">@GetProcessName(context.ProcessId)</MudTd>
                                 <MudTd DataLabel="Origen">@context.Source</MudTd>
                                 <MudTd DataLabel="Duración">@(context.DurationMinutes.HasValue ? $"{context.DurationMinutes} min" : "-")</MudTd>
-                                <MudTd DataLabel="Estado"><MudChip T="string" Size="Size.Small" Color="GetStatusColor(context.Status)">@context.Status</MudChip></MudTd>
+                                <MudTd DataLabel="Estado"><MudChip T="string" Size="Size.Small" Color="GetStatusColor(context.Status)" Class="status-chip">@context.Status</MudChip></MudTd>
                             </RowTemplate>
                             <NoRecordsContent>
                                 <MudText Typo="Typo.body2">No hay ejecuciones registradas.</MudText>

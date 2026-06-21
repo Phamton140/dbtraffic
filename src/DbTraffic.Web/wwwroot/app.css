@@ -27,3 +27,24 @@ h1:focus {
 .darker-border-checkbox.form-check-input {
     border-color: #929292;
 }
+
+/* Tablas compactas tipo Bootstrap */
+.compact-table .mud-table-cell {
+    padding: 0.375rem 0.5rem !important;
+    font-size: 0.875rem;
+    white-space: nowrap;
+}
+
+.compact-table .mud-table-head .mud-table-cell {
+    font-weight: 600;
+}
+
+.compact-table .mud-table-row {
+    height: auto !important;
+}
+
+/* Chips de estado con ancho uniforme */
+.status-chip {
+    min-width: 70px;
+    justify-content: center;
+}

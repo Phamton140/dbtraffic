@@ -2,80 +2,80 @@
 
 <PageTitle>DbTraffic - Dashboard</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6">
-    <MudText Typo="Typo.h3" Class="mb-2">Dashboard</MudText>
-    <MudText Typo="Typo.subtitle1" Class="mb-6">Controlador de tráfico para cargas de trabajo de bases de datos SQL Server.</MudText>
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+    <MudText Typo="Typo.h4" Class="mb-1">Dashboard</MudText>
+    <MudText Typo="Typo.body2" Class="mb-4">Controlador de tráfico para cargas de trabajo SQL Server.</MudText>
 
-    <MudGrid>
-        <MudItem xs="12" md="4">
-            <MudCard Elevation="2" Style="height: 100%;">
-                <MudCardContent>
-                    <MudIcon Icon="@Icons.Material.Filled.Warning" Color="Color.Primary" Size="Size.Large" Class="mb-3" />
-                    <MudText Typo="Typo.h6">Análisis de riesgo</MudText>
-                    <MudText Typo="Typo.body2">Simula la ejecución de un proceso en una fecha/hora propuesta y detecta conflictos antes de que ocurran.</MudText>
+    <MudGrid Spacing="2">
+        <MudItem xs="12" sm="6" md="4" lg="2">
+            <MudCard Elevation="2" Style="height: 100%;" Class="d-flex flex-column">
+                <MudCardContent Class="pa-3">
+                    <MudIcon Icon="@Icons.Material.Filled.Warning" Color="Color.Primary" Size="Size.Medium" Class="mb-2" />
+                    <MudText Typo="Typo.subtitle1" Style="font-weight: 500;">Riesgo</MudText>
+                    <MudText Typo="Typo.caption">Simula ejecuciones y detecta conflictos.</MudText>
                 </MudCardContent>
-                <MudCardActions>
-                    <MudButton Href="risk" Variant="Variant.Filled" Color="Color.Primary">Ir a riesgo</MudButton>
+                <MudCardActions Class="mt-auto pt-0 px-3 pb-3">
+                    <MudButton Href="risk" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" FullWidth="true">Ir</MudButton>
                 </MudCardActions>
             </MudCard>
         </MudItem>
-        <MudItem xs="12" md="4">
-            <MudCard Elevation="2" Style="height: 100%;">
-                <MudCardContent>
-                    <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Color="Color.Secondary" Size="Size.Large" Class="mb-3" />
-                    <MudText Typo="Typo.h6">Recomendaciones</MudText>
-                    <MudText Typo="Typo.body2">Encuentra ventanas de ejecución de bajo riesgo dentro de un rango de fechas configurable.</MudText>
+        <MudItem xs="12" sm="6" md="4" lg="2">
+            <MudCard Elevation="2" Style="height: 100%;" Class="d-flex flex-column">
+                <MudCardContent Class="pa-3">
+                    <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Color="Color.Secondary" Size="Size.Medium" Class="mb-2" />
+                    <MudText Typo="Typo.subtitle1" Style="font-weight: 500;">Recomendaciones</MudText>
+                    <MudText Typo="Typo.caption">Busca ventanas de bajo riesgo.</MudText>
                 </MudCardContent>
-                <MudCardActions>
-                    <MudButton Href="recommendations" Variant="Variant.Filled" Color="Color.Secondary">Buscar ventanas</MudButton>
+                <MudCardActions Class="mt-auto pt-0 px-3 pb-3">
+                    <MudButton Href="recommendations" Variant="Variant.Filled" Color="Color.Secondary" Size="Size.Small" FullWidth="true">Buscar</MudButton>
                 </MudCardActions>
             </MudCard>
         </MudItem>
-        <MudItem xs="12" md="4">
-            <MudCard Elevation="2" Style="height: 100%;">
-                <MudCardContent>
-                    <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Color="Color.Success" Size="Size.Large" Class="mb-3" />
-                    <MudText Typo="Typo.h6">Monitoreo</MudText>
-                    <MudText Typo="Typo.body2">Consulta métricas en tiempo real de CPU, memoria, requests activos y sesiones bloqueadoras.</MudText>
+        <MudItem xs="12" sm="6" md="4" lg="2">
+            <MudCard Elevation="2" Style="height: 100%;" Class="d-flex flex-column">
+                <MudCardContent Class="pa-3">
+                    <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Color="Color.Success" Size="Size.Medium" Class="mb-2" />
+                    <MudText Typo="Typo.subtitle1" Style="font-weight: 500;">Monitoreo</MudText>
+                    <MudText Typo="Typo.caption">Métricas en tiempo real.</MudText>
                 </MudCardContent>
-                <MudCardActions>
-                    <MudButton Href="monitoring" Variant="Variant.Filled" Color="Color.Success">Ver monitoreo</MudButton>
+                <MudCardActions Class="mt-auto pt-0 px-3 pb-3">
+                    <MudButton Href="monitoring" Variant="Variant.Filled" Color="Color.Success" Size="Size.Small" FullWidth="true">Ver</MudButton>
                 </MudCardActions>
             </MudCard>
         </MudItem>
-        <MudItem xs="12" md="4">
-            <MudCard Elevation="2" Style="height: 100%;">
-                <MudCardContent>
-                    <MudIcon Icon="@Icons.Material.Filled.Storage" Color="Color.Info" Size="Size.Large" Class="mb-3" />
-                    <MudText Typo="Typo.h6">Instancias</MudText>
-                    <MudText Typo="Typo.body2">Registra y gestiona las instancias SQL Server que deseas monitorear.</MudText>
+        <MudItem xs="12" sm="6" md="4" lg="2">
+            <MudCard Elevation="2" Style="height: 100%;" Class="d-flex flex-column">
+                <MudCardContent Class="pa-3">
+                    <MudIcon Icon="@Icons.Material.Filled.Storage" Color="Color.Info" Size="Size.Medium" Class="mb-2" />
+                    <MudText Typo="Typo.subtitle1" Style="font-weight: 500;">Instancias</MudText>
+                    <MudText Typo="Typo.caption">Gestiona instancias SQL Server.</MudText>
                 </MudCardContent>
-                <MudCardActions>
-                    <MudButton Href="instances" Variant="Variant.Outlined" Color="Color.Info">Gestionar instancias</MudButton>
+                <MudCardActions Class="mt-auto pt-0 px-3 pb-3">
+                    <MudButton Href="instances" Variant="Variant.Outlined" Color="Color.Info" Size="Size.Small" FullWidth="true">Gestionar</MudButton>
                 </MudCardActions>
             </MudCard>
         </MudItem>
-        <MudItem xs="12" md="4">
-            <MudCard Elevation="2" Style="height: 100%;">
-                <MudCardContent>
-                    <MudIcon Icon="@Icons.Material.Filled.Repeat" Color="Color.Info" Size="Size.Large" Class="mb-3" />
-                    <MudText Typo="Typo.h6">Procesos</MudText>
-                    <MudText Typo="Typo.body2">Cataloga jobs, ETLs, stored procedures y otros procesos de base de datos.</MudText>
+        <MudItem xs="12" sm="6" md="4" lg="2">
+            <MudCard Elevation="2" Style="height: 100%;" Class="d-flex flex-column">
+                <MudCardContent Class="pa-3">
+                    <MudIcon Icon="@Icons.Material.Filled.Repeat" Color="Color.Info" Size="Size.Medium" Class="mb-2" />
+                    <MudText Typo="Typo.subtitle1" Style="font-weight: 500;">Procesos</MudText>
+                    <MudText Typo="Typo.caption">Cataloga jobs y ETLs.</MudText>
                 </MudCardContent>
-                <MudCardActions>
-                    <MudButton Href="processes" Variant="Variant.Outlined" Color="Color.Info">Gestionar procesos</MudButton>
+                <MudCardActions Class="mt-auto pt-0 px-3 pb-3">
+                    <MudButton Href="processes" Variant="Variant.Outlined" Color="Color.Info" Size="Size.Small" FullWidth="true">Gestionar</MudButton>
                 </MudCardActions>
             </MudCard>
         </MudItem>
-        <MudItem xs="12" md="4">
-            <MudCard Elevation="2" Style="height: 100%;">
-                <MudCardContent>
-                    <MudIcon Icon="@Icons.Material.Filled.Search" Color="Color.Info" Size="Size.Large" Class="mb-3" />
-                    <MudText Typo="Typo.h6">Descubrimiento</MudText>
-                    <MudText Typo="Typo.body2">Descubre jobs y objetos de SQL Agent para asociarlos a tus procesos.</MudText>
+        <MudItem xs="12" sm="6" md="4" lg="2">
+            <MudCard Elevation="2" Style="height: 100%;" Class="d-flex flex-column">
+                <MudCardContent Class="pa-3">
+                    <MudIcon Icon="@Icons.Material.Filled.Search" Color="Color.Info" Size="Size.Medium" Class="mb-2" />
+                    <MudText Typo="Typo.subtitle1" Style="font-weight: 500;">Descubrimiento</MudText>
+                    <MudText Typo="Typo.caption">Descubre jobs y objetos.</MudText>
                 </MudCardContent>
-                <MudCardActions>
-                    <MudButton Href="discovery" Variant="Variant.Outlined" Color="Color.Info">Descubrir</MudButton>
+                <MudCardActions Class="mt-auto pt-0 px-3 pb-3">
+                    <MudButton Href="discovery" Variant="Variant.Outlined" Color="Color.Info" Size="Size.Small" FullWidth="true">Descubrir</MudButton>
                 </MudCardActions>
             </MudCard>
         </MudItem>

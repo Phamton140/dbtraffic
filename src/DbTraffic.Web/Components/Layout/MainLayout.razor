@@ -3,6 +3,7 @@
 @implements IAsyncDisposable
 
 <MudThemeProvider Theme="DbTrafficTheme" />
+<MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
@@ -11,7 +12,7 @@
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" aria-label="Toggle navigation" />
         <MudText Typo="Typo.h6" Class="ml-3">DbTraffic</MudText>
         <MudSpacer />
-        <MudChip T="string" Variant="Variant.Outlined" Color="SqlColor" Icon="@SqlIcon" title="Estado de conexión SQL Server">@SqlStatus</MudChip>
+        <MudChip T="string" Variant="Variant.Filled" Icon="@SqlIcon" title="Estado de conexión SQL Server" Style="background-color: #FFFFFF; color: #1565C0; font-weight: 500;">@SqlStatus</MudChip>
         <MudText Typo="Typo.caption" Class="ml-4 d-none d-md-block">@CurrentTime</MudText>
         <MudText Typo="Typo.caption" Class="ml-4 mr-2">v1.0.0</MudText>
     </MudAppBar>

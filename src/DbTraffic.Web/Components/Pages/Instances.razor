@@ -17,7 +17,7 @@
     {
         <MudGrid>
             <MudItem xs="12" lg="8">
-                <MudTable Items="_instances" Hover="true" Striped="true" Bordered="true" Elevation="2" Breakpoint="Breakpoint.Sm">
+                <MudTable Items="_instances" Hover="true" Striped="true" Bordered="true" Elevation="2" Breakpoint="Breakpoint.Sm" Dense="true" Class="compact-table">
                     <HeaderContent>
                         <MudTh>Nombre</MudTh>
                         <MudTh>Descripción</MudTh>
@@ -30,11 +30,11 @@
                         <MudTd DataLabel="Estado">
                             @if (context.IsActive)
                             {
-                                <MudChip T="string" Size="Size.Small" Color="Color.Success">Activa</MudChip>
+                                <MudChip T="string" Size="Size.Small" Color="Color.Success" Class="status-chip">Activa</MudChip>
                             }
                             else
                             {
-                                <MudChip T="string" Size="Size.Small" Color="Color.Default">Inactiva</MudChip>
+                                <MudChip T="string" Size="Size.Small" Color="Color.Default" Class="status-chip">Inactiva</MudChip>
                             }
                         </MudTd>
                         <MudTd Style="text-align: right;">

@@ -50,7 +50,7 @@
                     }
                     else
                     {
-                        <MudTable Items="_jobs" Hover="true" Striped="true" Bordered="true" Breakpoint="Breakpoint.Sm">
+                        <MudTable Items="_jobs" Hover="true" Striped="true" Bordered="true" Breakpoint="Breakpoint.Sm" Dense="true" Class="compact-table">
                             <HeaderContent>
                                 <MudTh>Nombre</MudTh>
                                 <MudTh>Habilitado</MudTh>
@@ -62,11 +62,11 @@
                                 <MudTd DataLabel="Habilitado">
                                     @if (context.Enabled)
                                     {
-                                        <MudChip T="string" Size="Size.Small" Color="Color.Success">Sí</MudChip>
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Success" Class="status-chip">Sí</MudChip>
                                     }
                                     else
                                     {
-                                        <MudChip T="string" Size="Size.Small" Color="Color.Default">No</MudChip>
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Default" Class="status-chip">No</MudChip>
                                     }
                                 </MudTd>
                                 <MudTd DataLabel="Proceso asociado">@GetAssociatedProcessName(context.AssociatedProcessId)</MudTd>
@@ -90,7 +90,7 @@
                     }
                     else
                     {
-                        <MudTable Items="_objects" Hover="true" Striped="true" Bordered="true" Breakpoint="Breakpoint.Sm">
+                        <MudTable Items="_objects" Hover="true" Striped="true" Bordered="true" Breakpoint="Breakpoint.Sm" Dense="true" Class="compact-table">
                             <HeaderContent>
                                 <MudTh>Esquema</MudTh>
                                 <MudTh>Objeto</MudTh>

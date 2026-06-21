@@ -33,8 +33,8 @@
                         <MudTd DataLabel="Instancia">@GetInstanceName(context.InstanceId)</MudTd>
                         <MudTd DataLabel="Duración">@context.EstimatedDurationMinutes min</MudTd>
                         <MudTd DataLabel="Intensidad">
-                            <MudChip T="string" Size="Size.Small" Color="Color.Info">CPU @context.CpuIntensity</MudChip>
-                            <MudChip T="string" Size="Size.Small" Color="Color.Warning">IO @context.IoIntensity</MudChip>
+                            <MudChip T="string" Size="Size.Small" Color="GetIntensityColor(context.CpuIntensity)">CPU @context.CpuIntensity</MudChip>
+                            <MudChip T="string" Size="Size.Small" Color="GetIntensityColor(context.IoIntensity)">IO @context.IoIntensity</MudChip>
                         </MudTd>
                         <MudTd Style="text-align: right;">
                             <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="() => DeleteProcess(context.Id)" aria-label="Eliminar proceso" />
@@ -149,6 +149,15 @@
             Snackbar.Add($"Error al eliminar proceso: {response.StatusCode}", Severity.Error);
         }
     }
+
+    private static Color GetIntensityColor(IntensityLevel level) => level switch
+    {
+        IntensityLevel.Low => Color.Success,
+        IntensityLevel.Medium => Color.Warning,
+        IntensityLevel.High => Color.Error,
+        IntensityLevel.Critical => Color.Dark,
+        _ => Color.Default
+    };
 
     private HttpClient CreateClient()
     {

@@ -4,7 +4,7 @@
 
 - **Prioridad**: Alta / Media / Baja
 - **Estado**: Pendiente / En progreso / Completado / Cancelado
-- **Fase**: 0-6 según plan de desarrollo
+- **Fase**: 0-7 según plan de desarrollo
 
 ---
 
@@ -125,5 +125,5 @@
 | F-006 | API pública documentada (OpenAPI) | Alta |
 | F-007 | Marketplace de reglas personalizadas | Baja |
 | F-008 | Migración de UI a Blazor WASM o SPA | Media |
-| F-009 | Dashboard de métricas de negocio (SLAs, costos) | Medium |
+| F-009 | Dashboard de métricas de negocio (SLAs, costos) | Media |
 | F-010 | Autenticación avanzada y control de roles | Alta |

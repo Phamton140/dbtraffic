@@ -67,13 +67,8 @@ builder.Services.Configure<MonitoringWorkerOptions>(options =>
     options.Interval = TimeSpan.FromMinutes(builder.Configuration.GetValue<int>("DbTraffic:Monitoring:IntervalMinutes", 5));
     options.Retention = TimeSpan.FromDays(builder.Configuration.GetValue<int>("DbTraffic:Monitoring:RetentionDays", 7));
 });
-// Skip background workers in integration/E2E test environments
-// to avoid interfering with Testcontainers-based tests.
-if (!builder.Environment.IsEnvironment("IntegrationTesting"))
-{
-    builder.Services.AddHostedService<DiscoveryWorker>();
-    builder.Services.AddHostedService<MonitoringWorker>();
-}
+builder.Services.AddHostedService<DiscoveryWorker>();
+builder.Services.AddHostedService<MonitoringWorker>();
 
 // Rules engine
 builder.Services.AddScoped<IRule, ObjectOverlapRule>();

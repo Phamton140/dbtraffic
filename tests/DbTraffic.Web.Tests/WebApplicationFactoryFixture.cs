@@ -55,7 +55,17 @@ public sealed class WebApplicationFactoryFixture : WebApplicationFactory<Program
             });
         }
 
-        builder.UseEnvironment("IntegrationTesting");
+        builder.ConfigureServices(services =>
+        {
+            var hostedServices = services
+                .Where(descriptor => descriptor.ServiceType == typeof(IHostedService))
+                .ToList();
+
+            foreach (var descriptor in hostedServices)
+            {
+                services.Remove(descriptor);
+            }
+        });
 
         return base.CreateHost(builder);
     }

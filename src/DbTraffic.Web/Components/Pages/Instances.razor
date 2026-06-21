@@ -95,7 +95,8 @@
         }
         else
         {
-            Snackbar.Add($"Error al crear instancia: {response.StatusCode}", Severity.Error);
+            var detail = await response.Content.ReadAsStringAsync();
+            Snackbar.Add($"Error al crear instancia: {detail}", Severity.Error);
         }
     }
 

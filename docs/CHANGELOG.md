@@ -23,6 +23,11 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - Endpoint `GET /api/dashboard/summary` para obtener datos agregados del dashboard.
 - Modelos `DashboardSummary` y `DashboardExecution` en `DbTraffic.Shared`.
 - Test de integración `DashboardTests.Summary_Endpoint_Returns_Dashboard_Data`.
+- `DatabaseInitializer`: aplica automáticamente `database/schema.sql` al arrancar la aplicación si detecta que las tablas del producto no existen.
+- `DomainExceptionMiddleware`: captura excepciones de dominio y devuelve respuestas `400 Bad Request` con el mensaje de validación, evitando que errores de validación rompan el circuito de Blazor Server.
+
+### Changed
+- `Instances.razor`: el snackbar de error ahora muestra el mensaje detallado devuelto por el servidor cuando falla la creación de una instancia.
 
 ## [1.0.0] - 2026-06-20
 

@@ -10,6 +10,7 @@ using DbTraffic.Infrastructure.SqlServer;
 using DbTraffic.Shared.Models;
 using DbTraffic.Web.Components;
 using DbTraffic.Web.Endpoints;
+using DbTraffic.Web.Middleware;
 using MudBlazor;
 using MudBlazor.Services;
 
@@ -45,6 +46,7 @@ builder.Services.AddSingleton<InstanceConnectionInfo>(sp =>
 
 builder.Services.AddScoped<ISqlServerInstanceClient, SqlServerInstanceClient>();
 builder.Services.AddSingleton<IDbConnectionFactory, SqlConnectionFactory>();
+builder.Services.AddScoped<DatabaseInitializer>();
 builder.Services.AddScoped<IProcessRepository, ProcessRepository>();
 builder.Services.AddScoped<IInstanceRepository, InstanceRepository>();
 builder.Services.AddScoped<IDiscoveryRepository, DiscoveryRepository>();
@@ -88,6 +90,7 @@ app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 app.UseAntiforgery();
+app.UseMiddleware<DomainExceptionMiddleware>();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
@@ -121,6 +124,13 @@ app.MapRecommendationEndpoints();
 app.MapMonitoringEndpoints();
 app.MapExecutionEndpoints();
 app.MapDashboardEndpoints();
+
+// Ensure the product database schema is applied before accepting requests.
+using (var scope = app.Services.CreateScope())
+{
+    var initializer = scope.ServiceProvider.GetRequiredService<DatabaseInitializer>();
+    await initializer.InitializeAsync();
+}
 
 app.Run();
 
